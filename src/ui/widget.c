@@ -40,11 +40,7 @@ extern GameApp global_app;
 extern Setting global_setting;
 
 WidgetRectList widget_list = {
-    .size = 16,
-    .len = 0,
-    .now = 0,
-    .aabb = (SDL_FRect){0, 0, 0, 0},
-    .data = NULL
+    .size = 16, .len = 0, .now = 0, .aabb = {0, 0, 0, 0}, .data = NULL
 };
 int should_update_widgets = 1;
 unsigned long cooldown_time = 0;
@@ -312,8 +308,10 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
         data->is_dragging = 1;
     } else if (!mouse_clicked) {
         data->is_dragging = 0;
+        return data->now;
     } else if (any_slider_clicked && !data->is_dragging) {
         data->is_dragging = 0;
+        return data->now;
     } else if (mouse_clicked &&
                (SDL_PointInFRect(&mouse_clicked_pos, &button_dst) ||
                 SDL_PointInFRect(&mouse_clicked_pos, &box))) {
@@ -328,14 +326,14 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
         int dir = 0;
         int right = SDL_GameControllerGetAxis(
                         global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTX
-                    ) > 16384;
+                    ) > 24576;
         right = right ||
                 SDL_GameControllerGetButton(
                     global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_RIGHT
                 );
         int left = SDL_GameControllerGetAxis(
                        global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTX
-                   ) < -16384;
+                   ) < -24576;
         left = left ||
                SDL_GameControllerGetButton(
                    global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_LEFT

@@ -190,11 +190,13 @@ void SettingSceneTick() {
         global_setting.interface_size = ui_size_data.now;
     }
     global_setting.auto_detect_size = auto_detect_size_data;
+    if (global_setting.fullscreen != fullscreen_data) {
+        SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
+    }
     global_setting.fullscreen = fullscreen_data;
     global_setting.music_volume = (int)music_volume_data.now;
     global_setting.sfx_volume = (int)sfx_volume_data.now;
     global_setting.slience = slience_data;
-    SDL_SetWindowFullscreen(global_app.window, global_setting.fullscreen);
 }
 
 void SettingSceneFree() {}

@@ -124,9 +124,10 @@ int main(int argc, char* argv[]) {
                             SDL_GameControllerOpen(event.cdevice.which);
                         if (global_app.joystick.device != NULL) {
                             global_app.joystick.available = 1;
-                            SDL_Joystick* joystick = SDL_GameControllerGetJoystick(
-                                global_app.joystick.device
-                            );
+                            SDL_Joystick* joystick =
+                                SDL_GameControllerGetJoystick(
+                                    global_app.joystick.device
+                                );
                             global_app.joystick.which =
                                 SDL_JoystickInstanceID(joystick);
                             SDL_ShowCursor(SDL_DISABLE);

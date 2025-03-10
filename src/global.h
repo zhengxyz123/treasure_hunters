@@ -40,7 +40,7 @@
     #define PATH_MAX MAX_PATH
 #endif
 
-#define TICK 33 /* about 30 FPS */
+#define TICK 17 /* about 60 FPS */
 
 typedef enum {
     GAMESTATUS_NORMAL,
