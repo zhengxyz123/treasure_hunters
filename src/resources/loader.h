@@ -27,5 +27,6 @@
 
 SDL_Surface* LoadSurface(const unsigned char* content, int size);
 SDL_Texture* LoadTexture(const unsigned char* content, int size);
+Mix_Chunk* LoadSound(const unsigned char* content, int size);
 
 #endif

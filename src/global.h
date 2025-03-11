@@ -26,9 +26,11 @@
 #if defined(WIN32) || defined(_WIN32) || defined(__MINGW32__)
     #include <SDL.h>
     #include <SDL_image.h>
+    #include <SDL_mixer.h>
 #else
     #include <SDL2/SDL.h>
     #include <SDL2/SDL_image.h>
+    #include <SDL2/SDL_mixer.h>
 #endif
 
 #if defined(__LINUX__)
@@ -41,6 +43,9 @@
 #endif
 
 #define TICK 17 /* about 60 FPS */
+
+#define MUSIC_CHANNEL 0
+#define SFX_CHANNEL 1
 
 typedef enum {
     GAMESTATUS_NORMAL,

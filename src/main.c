@@ -52,22 +52,29 @@ Setting global_setting = {
 int main(int argc, char* argv[]) {
     srand((unsigned)time(NULL));
 
-    /* initialise SDL */
+    /* initialise SDL, SDL_image and SDL_mixer */
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "SDL_Init(): %s\n", SDL_GetError()
         );
         return 1;
     }
+    SDL_SetHint(SDL_HINT_APP_NAME, "Treasure Hunters");
+    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
     if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "IMG_Init(): %s\n", SDL_GetError()
         );
         return 1;
     }
-    SDL_SetHint(SDL_HINT_APP_NAME, "Treasure Hunters");
-    SDL_SetHint(SDL_HINT_RENDER_VSYNC, "1");
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");
+    if (Mix_Init(MIX_INIT_OGG) != MIX_INIT_OGG) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR, "Mix_Init(): %s\n", SDL_GetError()
+        );
+        return 1;
+    }
+    Mix_OpenAudio(48000, AUDIO_F32SYS, 2, 2048);
 
     /* create the window, renderer and set the window icon */
     global_app.window = SDL_CreateWindow(
@@ -100,6 +107,12 @@ int main(int argc, char* argv[]) {
     SDL_free(base_path);
     InitSetting();
     SDL_SetWindowFullscreen(global_app.window, global_setting.fullscreen);
+    Mix_Volume(
+        MUSIC_CHANNEL, global_setting.slience ? 0 : global_setting.music_volume
+    );
+    Mix_Volume(
+        SFX_CHANNEL, global_setting.slience ? 0 : global_setting.sfx_volume
+    );
 
     /* setup scenes */
     scene_array[START_SCENE] = &start_scene;
@@ -173,6 +186,8 @@ int main(int argc, char* argv[]) {
     SDL_DestroyRenderer(global_app.renderer);
     SDL_DestroyWindow(global_app.window);
     IMG_Quit();
+    Mix_CloseAudio();
+    Mix_Quit();
     SDL_Quit();
     return 0;
 }

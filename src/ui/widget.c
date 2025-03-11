@@ -49,11 +49,14 @@ unsigned long slider_cooldown_time = 0;
 SDL_FPoint mouse_pos = {0, 0};
 SDL_FPoint mouse_clicked_pos = {0, 0};
 int mouse_clicked = 0;
+int any_button_clicked = 0;
 int any_option_clicked = 0;
 int any_slider_clicked = 0;
 
 SDL_Texture* button_texture = NULL;
 SDL_Texture* slider_texture = NULL;
+Mix_Chunk* click_sound = NULL;
+Mix_Chunk* switch_sound = NULL;
 
 TextStyle normal_text_style = {
     .size = 1.0,
@@ -88,12 +91,16 @@ void InitWidgetSystem() {
     );
     slider_texture =
         LoadTexture(slider_png_content, sizeof(slider_png_content));
+    click_sound = LoadSound(click_ogg_content, sizeof(click_ogg_content));
+    switch_sound = LoadSound(switch_ogg_content, sizeof(switch_ogg_content));
 }
 
 void QuitWidgetSystem() {
     free(widget_list.data);
     SDL_DestroyTexture(button_texture);
     SDL_DestroyTexture(slider_texture);
+    Mix_FreeChunk(click_sound);
+    Mix_FreeChunk(switch_sound);
 }
 
 void ClearWidgets() {
@@ -133,6 +140,9 @@ void UpdateWidgetList() {
     }
     for (size_t i = 0; i < widget_list.len; ++i) {
         if (SDL_PointInFRect(&mouse_pos, &widget_list.data[i])) {
+            if (widget_list.now != i) {
+                Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
+            }
             widget_list.now = i;
             break;
         }
@@ -159,6 +169,7 @@ void HandleWidgetEvent(SDL_Event* event) {
         case SDL_MOUSEBUTTONUP:
             if (!global_app.joystick.available) {
                 mouse_clicked = 0;
+                any_button_clicked = 0;
                 any_option_clicked = 0;
                 any_slider_clicked = 0;
             }
@@ -171,6 +182,7 @@ void HandleWidgetEvent(SDL_Event* event) {
             break;
         case SDL_CONTROLLERBUTTONUP:
             mouse_clicked = 0;
+            any_button_clicked = 0;
             any_option_clicked = 0;
             any_slider_clicked = 0;
             break;
@@ -202,8 +214,12 @@ void HandleWidgetEvent(SDL_Event* event) {
             dir = -1;
             cooldown_time = SDL_GetTicks64() + 5 * TICK;
         }
-        widget_list.now =
+        size_t now =
             SDL_clamp((long)widget_list.now + dir, 0, widget_list.len - 1);
+        if (widget_list.now != now) {
+            Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
+        }
+        widget_list.now = now;
         SDL_FRect rect = widget_list.data[widget_list.now];
         mouse_pos = (SDL_FPoint){rect.x + rect.w / 2, rect.y + rect.h / 2};
     }
@@ -242,6 +258,10 @@ int WidgetButton(float x, float y, char* str, int disabled) {
         return 0;
     }
     if (mouse_clicked && SDL_PointInFRect(&mouse_clicked_pos, &box)) {
+        if (!any_button_clicked) {
+            Mix_PlayChannel(SFX_CHANNEL, click_sound, 0);
+        }
+        any_button_clicked = 1;
         return 1;
     } else {
         return 0;
@@ -276,6 +296,7 @@ int WidgetOption(float x, float y, int* data) {
         !any_option_clicked) {
         any_option_clicked = 1;
         *data = !*data;
+        Mix_PlayChannel(SFX_CHANNEL, click_sound, 0);
     }
     return *data;
 }

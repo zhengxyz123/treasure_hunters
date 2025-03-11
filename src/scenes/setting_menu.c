@@ -39,8 +39,8 @@ Scene setting_scene = {
 SliderData ui_size_data = {.min = 1.0, .max = 5.0};
 int auto_detect_size_data = 0;
 int fullscreen_data = 0;
-SliderData music_volume_data = {.min = 0.0, .max = 128.0};
-SliderData sfx_volume_data = {.min = 0.0, .max = 128.0};
+SliderData music_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
+SliderData sfx_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
 int slience_data = 0;
 SettingItem settings_array[] = {
     {SETTING_TYPE_SUBTITLE, "Display"},
@@ -194,8 +194,20 @@ void SettingSceneTick() {
         SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
     }
     global_setting.fullscreen = fullscreen_data;
+    if (global_setting.music_volume != (int)music_volume_data.now) {
+        Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
+    }
     global_setting.music_volume = (int)music_volume_data.now;
+    if (global_setting.sfx_volume != (int)sfx_volume_data.now) {
+        Mix_Volume(SFX_CHANNEL, (int)sfx_volume_data.now);
+    }
     global_setting.sfx_volume = (int)sfx_volume_data.now;
+    if (global_setting.slience != slience_data) {
+        Mix_Volume(
+            MUSIC_CHANNEL, slience_data ? 0 : global_setting.music_volume
+        );
+        Mix_Volume(SFX_CHANNEL, slience_data ? 0 : global_setting.sfx_volume);
+    }
     global_setting.slience = slience_data;
 }
 
