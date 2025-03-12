@@ -39,9 +39,8 @@
 extern GameApp global_app;
 extern Setting global_setting;
 
-WidgetRectList widget_list = {
-    .size = 16, .len = 0, .now = 0, .aabb = {0, 0, 0, 0}, .data = NULL
-};
+WidgetRectList widget_list = {.size = 16, .aabb = {0, 0, 0, 0}, .data = NULL};
+int mouse_in_rect = 0;
 int should_update_widgets = 1;
 unsigned long cooldown_time = 0;
 unsigned long slider_cooldown_time = 0;
@@ -121,32 +120,40 @@ void AppendWidget(SDL_FRect* rect) {
             widget_list.data, widget_list.size * sizeof(SDL_FRect)
         );
     }
-    memcpy(&widget_list.data[widget_list.len++], rect, sizeof(SDL_Rect));
+    widget_list.data[widget_list.len++] = *rect;
     widget_list.aabb = widget_list.data[0];
     if (widget_list.len == 1) {
         return;
     }
+    widget_list.aabb.w += widget_list.aabb.x;
+    widget_list.aabb.h += widget_list.aabb.y;
     for (size_t i = 0; i < widget_list.len; ++i) {
-        widget_list.aabb.x = SDL_min(widget_list.aabb.x, widget_list.data[i].x);
-        widget_list.aabb.y = SDL_min(widget_list.aabb.y, widget_list.data[i].y);
-        widget_list.aabb.w = SDL_min(widget_list.aabb.w, widget_list.data[i].w);
-        widget_list.aabb.h = SDL_min(widget_list.aabb.h, widget_list.data[i].h);
+        SDL_FRect rect = widget_list.data[i];
+        widget_list.aabb.x = SDL_min(widget_list.aabb.x, rect.x);
+        widget_list.aabb.y = SDL_min(widget_list.aabb.y, rect.y);
+        widget_list.aabb.w = SDL_max(widget_list.aabb.w, rect.x + rect.w);
+        widget_list.aabb.h = SDL_max(widget_list.aabb.h, rect.y + rect.h);
     }
+    widget_list.aabb.w -= widget_list.aabb.x;
+    widget_list.aabb.h -= widget_list.aabb.y;
 }
 
 void UpdateWidgetList() {
-    if (SDL_PointInFRect(&mouse_pos, &widget_list.aabb)) {
+    if (!SDL_PointInFRect(&mouse_pos, &widget_list.aabb)) {
+        mouse_in_rect = 0;
         return;
     }
     for (size_t i = 0; i < widget_list.len; ++i) {
         if (SDL_PointInFRect(&mouse_pos, &widget_list.data[i])) {
-            if (widget_list.now != i) {
+            if (!mouse_in_rect) {
                 Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
+                mouse_in_rect = 1;
             }
             widget_list.now = i;
-            break;
+            return;
         }
     }
+    mouse_in_rect = 0;
 }
 
 void HandleWidgetEvent(SDL_Event* event) {

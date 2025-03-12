@@ -194,11 +194,13 @@ void SettingSceneTick() {
         SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
     }
     global_setting.fullscreen = fullscreen_data;
-    if (global_setting.music_volume != (int)music_volume_data.now) {
+    if (global_setting.music_volume != (int)music_volume_data.now &&
+        !global_setting.slience) {
         Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
     }
     global_setting.music_volume = (int)music_volume_data.now;
-    if (global_setting.sfx_volume != (int)sfx_volume_data.now) {
+    if (global_setting.sfx_volume != (int)sfx_volume_data.now &&
+        !global_setting.slience) {
         Mix_Volume(SFX_CHANNEL, (int)sfx_volume_data.now);
     }
     global_setting.sfx_volume = (int)sfx_volume_data.now;
