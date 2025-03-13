@@ -27,6 +27,7 @@
 #include "scenes/start_menu.h"
 #include "scenes/subscene.h"
 #include "setting.h"
+#include "ui/text.h"
 #include <limits.h>
 #include <string.h>
 #include <time.h>
@@ -120,6 +121,7 @@ int main(int argc, char* argv[]) {
     InitSceneManager();
     InitSubscene();
     InitWidgetSystem();
+    InitTextSystem();
 
     /* game loop */
     unsigned long prev_tick = SDL_GetTicks64();
@@ -177,8 +179,9 @@ int main(int argc, char* argv[]) {
     if (global_app.joystick.device != NULL) {
         SDL_GameControllerClose(global_app.joystick.device);
     }
-    QuitWidgetSystem();
     SaveSetting();
+    QuitTextSystem();
+    QuitWidgetSystem();
     FreeSubscene();
     FreeSceneManager();
     free(global_app.exec_path);

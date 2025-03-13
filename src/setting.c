@@ -47,11 +47,6 @@ void InitSetting() {
     if (fp == NULL) {
         return;
     }
-#if 0
-    size_t len;
-    char* setting_content;
-    getdelim(&setting_content, &len, EOF, fp);
-#else
     size_t len = 128, now = 0;
     char* setting_content = (char*)calloc(len, sizeof(char));
     char ch;
@@ -63,7 +58,6 @@ void InitSetting() {
                 (char*)realloc(setting_content, len * sizeof(char));
         }
     }
-#endif
     fclose(fp);
     cJSON* setting_json = cJSON_Parse(setting_content);
     cJSON* object = NULL;

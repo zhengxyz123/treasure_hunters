@@ -33,6 +33,10 @@
 
 extern GameApp global_app;
 
+SDL_Texture* big_text_texture = NULL;
+SDL_Texture* small_text_texture = NULL;
+SDL_Texture* input_prompt_texture = NULL;
+
 TextStyle default_big_text_style = {
     4.0, 2, 2, TEXT_ALIGN_LEFT, TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
 };
@@ -44,6 +48,20 @@ TextStyle default_small_text_style = {
     .shadow_offset = {1, 1},
     .shadow_color = {255, 255, 255, 255}
 };
+
+void InitTextSystem() {
+    big_text_texture = LoadTexture(big_text_png_content, sizeof(big_text_png_content));
+    small_text_texture =
+        LoadTexture(small_text_png_content, sizeof(small_text_png_content));
+    input_prompt_texture =
+        LoadTexture(input_prompt_png_content, sizeof(input_prompt_png_content));
+}
+
+void QuitTextSystem() {
+    SDL_DestroyTexture(big_text_texture);
+    SDL_DestroyTexture(small_text_texture);
+    SDL_DestroyTexture(input_prompt_texture);
+}
 
 void CalcBigTextSize(char* str, TextStyle* style, float* w, float* h) {
     if (style == NULL) {
@@ -83,8 +101,6 @@ float CalcBigTextWidthOneLine(char* str, TextStyle* style) {
 }
 
 void DrawBigText(float x, float y, TextStyle* style, const char* format, ...) {
-    SDL_Texture* big_text_texture =
-        LoadTexture(big_text_png_content, sizeof(big_text_png_content));
     if (style == NULL) {
         style = &default_big_text_style;
     }
@@ -151,7 +167,6 @@ void DrawBigText(float x, float y, TextStyle* style, const char* format, ...) {
         text_dst.x += BIG_TEXT_WIDTH * style->size + style->char_space;
     }
     free(str);
-    SDL_DestroyTexture(big_text_texture);
 }
 
 void CalcSmallTextSize(char* str, TextStyle* style, float* w, float* h) {
@@ -202,10 +217,6 @@ float CalcSmallTextWidthOneLine(char* str, TextStyle* style) {
 void DrawSmallText(
     float x, float y, TextStyle* style, const char* format, ...
 ) {
-    SDL_Texture* small_text_texture =
-        LoadTexture(small_text_png_content, sizeof(small_text_png_content));
-    SDL_Texture* input_prompt_texture =
-        LoadTexture(input_prompt_png_content, sizeof(input_prompt_png_content));
     if (style == NULL) {
         style = &default_small_text_style;
     }
@@ -345,6 +356,4 @@ void DrawSmallText(
         text_dst.x += SMALL_TEXT_WIDTH * style->size + style->char_space;
     }
     free(str);
-    SDL_DestroyTexture(small_text_texture);
-    SDL_DestroyTexture(input_prompt_texture);
 }

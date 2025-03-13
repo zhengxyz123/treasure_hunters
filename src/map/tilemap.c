@@ -20,49 +20,19 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_TILEMAP_H_
-#define _TH_TILEMAP_H_
+#include "../resources/assets.h"
+#include "../resources/loader.h"
+#include "tilemap.h"
 
-#include "../global.h"
+TileSet* tileset = NULL;
 
-typedef enum {
-    OBJECT_TYPE_POINT,
-    OBJECT_TYPE_RECT
-} TileMapObjectType;
+void InitTileMap() {
+    tileset = (TileSet*)malloc(sizeof(TileSet));
+    tileset->texture = LoadTexture(tilesets_png_content, sizeof(tilesets_png_content));
+    tileset->first_index = 0;
+}
 
-typedef struct {
-    SDL_Texture* texture;
-    int first_index;
-} TileSet;
-
-typedef struct {
-    SDL_Rect area;
-    int* data;
-} TileMayLayer;
-
-typedef struct {
-    TileMapObjectType type;
-    char* class_name;
-    char* object_name;
-    unsigned char flag;
-    union {
-        SDL_FPoint point;
-        SDL_FRect rect;
-    } data;
-} TileMapObject;
-
-typedef struct {
-    int tile_width;
-    int tile_height;
-    int tileset_count;
-    TileSet* tileset;
-    int layer_count;
-    TileMayLayer* layer;
-    int object_count;
-    TileMapObject object;
-} TileMap;
-
-void InitTileMap();
-void QuitTileMap();
-
-#endif
+void QuitTileMap() {
+    SDL_DestroyTexture(tileset->texture);
+    free(tileset);
+}

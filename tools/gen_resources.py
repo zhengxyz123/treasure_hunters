@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # Copyright (c) 2025 zhengxyz123
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
