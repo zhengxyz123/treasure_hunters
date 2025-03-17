@@ -50,7 +50,8 @@ TextStyle default_small_text_style = {
 };
 
 void InitTextSystem() {
-    big_text_texture = LoadTexture(big_text_png_content, sizeof(big_text_png_content));
+    big_text_texture =
+        LoadTexture(big_text_png_content, sizeof(big_text_png_content));
     small_text_texture =
         LoadTexture(small_text_png_content, sizeof(small_text_png_content));
     input_prompt_texture =

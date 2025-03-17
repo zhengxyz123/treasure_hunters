@@ -25,21 +25,21 @@
 
 extern GameApp global_app;
 
-SDL_Surface* LoadSurface(const unsigned char* content, int size) {
+SDL_Surface* LoadSurface(const unsigned char* content, size_t size) {
     SDL_RWops* raw_image = SDL_RWFromConstMem(content, size);
     SDL_Surface* surface = IMG_LoadPNG_RW(raw_image);
     SDL_RWclose(raw_image);
     return surface;
 }
 
-SDL_Texture* LoadTexture(const unsigned char* content, int size) {
+SDL_Texture* LoadTexture(const unsigned char* content, size_t size) {
     SDL_RWops* raw_image = SDL_RWFromConstMem(content, size);
     SDL_Texture* texture =
         IMG_LoadTexture_RW(global_app.renderer, raw_image, 1);
     return texture;
 }
 
-Mix_Chunk* LoadSound(const unsigned char* content, int size) {
+Mix_Chunk* LoadSound(const unsigned char* content, size_t size) {
     SDL_RWops* raw_music = SDL_RWFromConstMem(content, size);
     Mix_Chunk* chunk = Mix_LoadWAV_RW(raw_music, 1);
     return chunk;

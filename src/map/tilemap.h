@@ -36,14 +36,20 @@ typedef struct {
 } TileSet;
 
 typedef struct {
+    size_t count;
+    int is_playing;
+    SDL_Rect* frames;
+} AnimatedTileSet;
+
+typedef struct {
     SDL_Rect area;
     int* data;
 } TileMayLayer;
 
 typedef struct {
     TileMapObjectType type;
-    char* class_name;
-    char* object_name;
+    char class_name[8];
+    char object_name[8];
     unsigned char flag;
     union {
         SDL_FPoint point;
@@ -54,15 +60,19 @@ typedef struct {
 typedef struct {
     int tile_width;
     int tile_height;
-    int tileset_count;
+    size_t tileset_count;
     TileSet* tileset;
-    int layer_count;
+    size_t anim_tile_count;
+    AnimatedTileSet* anim_tile;
+    size_t layer_count;
     TileMayLayer* layer;
-    int object_count;
+    size_t object_count;
     TileMapObject object;
 } TileMap;
 
-void InitTileMap();
-void QuitTileMap();
+void InitMapSystem();
+void QuitMapSystem();
+TileMap* LoadTileMap(const unsigned char* data, size_t size);
+void FreeTileMap(TileMap* map);
 
 #endif

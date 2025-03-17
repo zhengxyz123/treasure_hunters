@@ -21,7 +21,9 @@
 
 """Game map editor."""
 
+from dataclasses import dataclass
 from pathlib import Path
+import struct
 
 import pyglet
 from pyglet.gl import (
@@ -33,31 +35,138 @@ from pyglet.gl import (
     glScissor,
 )
 from pyglet.image import Texture
-from pyglet.image import load as load_image
+from pyglet.image import load as load_image, ImageGrid
 from pyglet.shapes import Line, Rectangle
 from pyglet.sprite import Sprite
+from pyglet.text import Label, Weight
 from pyglet.window import Window
 from pyglet.window.mouse import LEFT, MIDDLE
+
+
+@dataclass
+class AnimatedTileSet:
+    is_playing: bool
+    frames: list[tuple[int, int, int, int]]
+
+    def to_bytes(self) -> bytes:
+        return struct.pack(
+            f"<BH{len(self.frames) * 4}h",
+            self.is_playing,
+            len(self.frames),
+            *[item for sublist in self.frames for item in sublist],
+        )
+
+
+window_frame: list[tuple[int, int, int, int]] = []
+for n in range(10, 12):
+    for m in range(12, 16):
+        window_frame.append((m, n, 1, 1))
+for n in range(12, 15):
+    for m in range(17):
+        window_frame.append((m, n, 1, 1))
+for i in range(15):
+    window_frame.append((i, 15, 1, 1))
+window_anime = AnimatedTileSet(is_playing=True, frames=window_frame)
+light_anime = AnimatedTileSet(
+    is_playing=True,
+    frames=[
+        (14, 1, 1, 1),
+        (15, 1, 1, 1),
+        (12, 2, 1, 1),
+        (13, 2, 1, 1),
+        (14, 2, 1, 1),
+        (15, 2, 1, 1),
+    ],
+)
+glow_anime = AnimatedTileSet(
+    is_playing=True, frames=[(12, 3, 1, 1), (13, 3, 1, 1), (14, 3, 1, 1), (15, 3, 1, 1)]
+)
+
+
+@dataclass
+class TileMapObject:
+    obj_type: int
+    class_name: str
+    object_name: str
+    flag: int
+    data: tuple[int, int, int, int]
+
+    def to_bytes(self) -> bytes:
+        binary = struct.pack(
+            "<?8s8sB",
+            self.obj_type,
+            (
+                self.class_name[:8]
+                if len(self.class_name) <= 8
+                else self.class_name.ljust(8)
+            ),
+            (
+                self.object_name[:8]
+                if len(self.object_name) <= 8
+                else self.object_name.ljust(8)
+            ),
+            self.flag & 0xff,
+        )
+        binary += struct.pack("<4h", *self.data)
+        return binary
+
+
+@dataclass
+class TileMapLayer:
+    area: tuple[int, int, int, int]
+    data: list[int]
+
+    def to_bytes(self) -> bytes:
+        return struct.pack(
+            f"<4hH{len(self.data)}h",
+            *self.area,
+            len(self.data),
+            *self.data,
+        )
+
+
+class TileMap:
+    def __init__(self, tileset_path: Path) -> None:
+        self.tileset = ImageGrid(load_image(str(tileset_path)), 20, 16)
+        self.animated_tiles = [window_anime, light_anime, glow_anime]
+        self.objects: list[TileMapObject] = []
+        self.layers: list[TileMapLayer] = []
+
+    def to_bytes(self) -> bytes:
+        binary = struct.pack("<3sBH", b"MAP", 1, len(self.animated_tiles))
+        for tile in self.animated_tiles:
+            binary += tile.to_bytes()
+        binary += struct.pack("<H", len(self.objects))
+        for obj in self.objects:
+            binary += obj.to_bytes()
+        binary += struct.pack("<H", len(self.layers))
+        for layer in self.layers:
+            binary += layer.to_bytes()
+        return binary
 
 
 class MapEditorWindow(Window):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.set_caption("Map Editor")
-        self.set_minimum_size(640, 480)
-        self.maximize()
+        self.set_minimum_size(1280, 720)
 
         self.tileset_path = (
             Path(__file__).parent.parent / "resources" / "images" / "tilesets.png"
         )
+        self.tilemap = TileMap(self.tileset_path)
         self.vbar = Rectangle(self.width / 3, 0, 3, self.height, color=(85, 85, 85))
-        self.hbar = Rectangle(
-            0, 2 * self.height / 3, self.vbar.x, 3, color=(85, 85, 85)
-        )
+        self.hbar = Rectangle(0, self.height / 2, self.vbar.x, 3, color=(85, 85, 85))
         self.split_line = Line(0, 0, 0, 0, color=(0, 0, 0))
         self.tileset_sprite = Sprite(load_image(str(self.tileset_path)))
         self.tileset_sprite.position = (0, self.hbar.y - self.tileset_sprite.height, 0)
         self.selected_tile = [0, 0]
+        self.select_label1 = Label(
+            "(0, 0): 1", 5, 3, color=(0, 0, 0), font_size=15, weight=Weight.BOLD
+        )
+        self.select_label2 = Label(
+            "(0, 0): 1", 3, 5, color=(255, 255, 255), font_size=15, weight=Weight.BOLD
+        )
         self.select_rect = Rectangle(0, 0, 0, 0, color=(85, 85, 255, 128))
 
         self.can_drag_vbar = False
@@ -89,6 +198,14 @@ class MapEditorWindow(Window):
         self.hbar.draw()
         glEnable(GL_SCISSOR_TEST)
         glScissor(0, 0, int(self.vbar.x), int(self.hbar.y))
+        self.tileset_sprite.x = max(
+            self.vbar.x - self.tileset_sprite.width, min(self.tileset_sprite.x, 0)
+        )
+        if self.vbar.x > self.tileset_sprite.width:
+            self.tileset_sprite.x = 0
+        self.tileset_sprite.y = max(
+            self.hbar.y - self.tileset_sprite.height, min(self.tileset_sprite.y, 0)
+        )
         self.tileset_sprite.draw()
         self.select_rect.x = (
             self.tileset_sprite.x
@@ -123,6 +240,8 @@ class MapEditorWindow(Window):
             self.split_line.x2 = self.split_line.x
             self.split_line.y2 = self.split_line.y + self.tileset_sprite.height
             self.split_line.draw()
+        self.select_label1.draw()
+        self.select_label2.draw()
         glDisable(GL_SCISSOR_TEST)
 
     def on_resize(self, width: int, height: int) -> None:
@@ -159,14 +278,18 @@ class MapEditorWindow(Window):
         else:
             self.vbar.color = (85, 85, 85)
         if (x, y) in self.hbar or (
-            (x, y) in self.vbar and self.hbar.y - 3 < y < self.hbar.y + self.hbar.height + 3
+            (x, y) in self.vbar
+            and self.hbar.y - 3 < y < self.hbar.y + self.hbar.height + 3
         ):
             self.hbar.color = (170, 170, 170)
         else:
             self.hbar.color = (85, 85, 85)
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
-        if (x, y) in self.vbar and self.hbar.y - 3 < y < self.hbar.y + self.hbar.height + 3:
+        if (
+            x,
+            y,
+        ) in self.vbar and self.hbar.y - 3 < y < self.hbar.y + self.hbar.height + 3:
             self.can_drag_bar = True
         elif button == LEFT and (x, y) in self.vbar:
             self.can_drag_vbar = True
@@ -181,9 +304,15 @@ class MapEditorWindow(Window):
                 < y
                 < self.tileset_sprite.y + self.tileset_sprite.height
             ):
-                sx = (x - self.tileset_sprite.x) // (32 * self.tileset_sprite.scale)
-                sy = (y - self.tileset_sprite.y) // (32 * self.tileset_sprite.scale)
-                self.selected_tile = [sx, 15 - sy]
+                sx = int(
+                    (x - self.tileset_sprite.x) // (32 * self.tileset_sprite.scale)
+                )
+                sy = 15 - int(
+                    (y - self.tileset_sprite.y) // (32 * self.tileset_sprite.scale)
+                )
+                self.selected_tile = [sx, sy]
+                self.select_label1.text = f"({sx}, {sy}): {sx + 20 * sy + 1}"
+                self.select_label2.text = self.select_label1.text
         elif button == MIDDLE:
             if x < self.vbar.x and y < self.hbar.y:
                 self.drag_which_frame = 0
@@ -200,5 +329,5 @@ class MapEditorWindow(Window):
 if __name__ == "__main__":
     Texture.default_min_filter = GL_NEAREST
     Texture.default_mag_filter = GL_NEAREST
-    win = MapEditorWindow(resizable=True)
+    win = MapEditorWindow(1280, 720, resizable=True)
     pyglet.app.run()
