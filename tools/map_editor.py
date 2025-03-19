@@ -86,15 +86,16 @@ glow_anime = AnimatedTileSet(
 @dataclass
 class TileMapObject:
     obj_type: int
+    flag: int
     class_name: str
     object_name: str
-    flag: int
     data: tuple[int, int, int, int]
 
     def to_bytes(self) -> bytes:
         binary = struct.pack(
-            "<?8s8sB",
+            "<2B8s8s4h",
             self.obj_type,
+            self.flag & 0xFF,
             (
                 self.class_name[:8]
                 if len(self.class_name) <= 8
@@ -105,9 +106,8 @@ class TileMapObject:
                 if len(self.object_name) <= 8
                 else self.object_name.ljust(8)
             ),
-            self.flag & 0xff,
+            *self.data,
         )
-        binary += struct.pack("<4h", *self.data)
         return binary
 
 
@@ -118,9 +118,8 @@ class TileMapLayer:
 
     def to_bytes(self) -> bytes:
         return struct.pack(
-            f"<4hH{len(self.data)}h",
+            f"<4h{len(self.data)}h",
             *self.area,
-            len(self.data),
             *self.data,
         )
 
@@ -128,18 +127,63 @@ class TileMapLayer:
 class TileMap:
     def __init__(self, tileset_path: Path) -> None:
         self.tileset = ImageGrid(load_image(str(tileset_path)), 20, 16)
-        self.animated_tiles = [window_anime, light_anime, glow_anime]
+        self.animated_tiles: list[AnimatedTileSet] = []
         self.objects: list[TileMapObject] = []
         self.layers: list[TileMapLayer] = []
 
+    @classmethod
+    def from_bytes(cls, content: bytes) -> "TileMap":
+        map = cls(
+            Path(__file__).parent.parent / "resources" / "images" / "tilesets.png"
+        )
+        now = 0
+        if struct.unpack_from("<3s", content)[0] != b"MAP":
+            raise ValueError("wrong file header")
+        now += struct.calcsize("<3s")
+        if struct.unpack_from("<B", content, now)[0] != 1:
+            raise ValueError("wrong format version")
+        now += struct.calcsize("<B")
+        _, _ = struct.unpack_from("<2H", content, now)
+        now += struct.calcsize("<2H")
+        animated_tiles_count, objects_count, layers_count = struct.unpack_from(
+            "3H", content, now
+        )
+        now += struct.calcsize("<3H")
+        for _ in range(animated_tiles_count):
+            is_playing = bool(struct.unpack_from("<B", content, now)[0])
+            now += struct.calcsize("<B")
+            length = int(struct.unpack_from("<H", content, now)[0])
+            now += struct.calcsize("<H")
+            data = struct.unpack_from(f"<{length * 4}h", content, now)
+            now += struct.calcsize(f"<{length * 4}h")
+            frames = []
+            for n in range(length):
+                frames.append(data[4 * n : 4 * n + 4])
+            map.animated_tiles.append(AnimatedTileSet(is_playing, frames))
+        for _ in range(objects_count):
+            obj_type, flag, class_name, object_name = struct.unpack_from("<2B8s8s", content, now)
+            now += struct.calcsize("<2B8s8s")
+            data = struct.unpack_from("<4h", content, now)
+            now += struct.calcsize("<4h")
+            map.objects.append(TileMapObject(obj_type, flag, class_name, object_name, data))  # type: ignore
+        for _ in range(layers_count):
+            area = struct.unpack_from("<4h", content, now)
+            now += struct.calcsize("<4h")
+            data = list(struct.unpack_from(f"<{area[2] * area[3]}h", content, now))
+            now += struct.calcsize(f"<{area[2] * area[3]}h")
+            map.layers.append(TileMapLayer(area, data))
+        return map
+
     def to_bytes(self) -> bytes:
-        binary = struct.pack("<3sBH", b"MAP", 1, len(self.animated_tiles))
+        binary = struct.pack("<3sB", b"MAP", 1)
+        binary += struct.pack("2H", 32, 32)
+        binary += struct.pack(
+            "3H", len(self.animated_tiles), len(self.objects), len(self.layers)
+        )
         for tile in self.animated_tiles:
             binary += tile.to_bytes()
-        binary += struct.pack("<H", len(self.objects))
         for obj in self.objects:
             binary += obj.to_bytes()
-        binary += struct.pack("<H", len(self.layers))
         for layer in self.layers:
             binary += layer.to_bytes()
         return binary
@@ -155,6 +199,7 @@ class MapEditorWindow(Window):
             Path(__file__).parent.parent / "resources" / "images" / "tilesets.png"
         )
         self.tilemap = TileMap(self.tileset_path)
+        self.tilemap.animated_tiles = [window_anime, light_anime, glow_anime]
         self.vbar = Rectangle(self.width / 3, 0, 3, self.height, color=(85, 85, 85))
         self.hbar = Rectangle(0, self.height / 2, self.vbar.x, 3, color=(85, 85, 85))
         self.split_line = Line(0, 0, 0, 0, color=(0, 0, 0))
@@ -189,7 +234,7 @@ class MapEditorWindow(Window):
             self.set_mouse_cursor(cursor)
         else:
             cursor = self.get_system_mouse_cursor(
-                self.CURSOR_DEFAULT  # pyright: ignore
+                self.CURSOR_DEFAULT  # type: ignore
             )
             self.set_mouse_cursor(cursor)
         self.vbar.x = min(self.width - 8, max(self.vbar.x, 5))

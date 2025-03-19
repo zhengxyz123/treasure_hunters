@@ -3,7 +3,6 @@
 #ifndef _TH_ASSETS_H_
 #define _TH_ASSETS_H_
 
-extern const unsigned char empty_map_content[691];
 extern const unsigned char switch_ogg_content[4588];
 extern const unsigned char click_ogg_content[4983];
 extern const unsigned char tilesets_png_content[47300];
