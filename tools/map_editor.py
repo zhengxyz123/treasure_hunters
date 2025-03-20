@@ -21,9 +21,11 @@
 
 """Game map editor."""
 
-from dataclasses import dataclass
-from pathlib import Path
 import struct
+from dataclasses import dataclass
+from io import BytesIO
+from pathlib import Path
+from typing import Any
 
 import pyglet
 from pyglet.gl import (
@@ -34,8 +36,10 @@ from pyglet.gl import (
     glEnable,
     glScissor,
 )
-from pyglet.image import Texture
-from pyglet.image import load as load_image, ImageGrid
+from pyglet.graphics import draw
+from pyglet.image import ImageGrid, Texture
+from pyglet.image import load as load_image
+from pyglet.math import Mat4, Vec3
 from pyglet.shapes import Line, Rectangle
 from pyglet.sprite import Sprite
 from pyglet.text import Label, Weight
@@ -125,53 +129,50 @@ class TileMapLayer:
 
 
 class TileMap:
-    def __init__(self, tileset_path: Path) -> None:
-        self.tileset = ImageGrid(load_image(str(tileset_path)), 20, 16)
+    def __init__(self) -> None:
+        self.tile_width = 32
+        self.tile_height = 32
         self.animated_tiles: list[AnimatedTileSet] = []
         self.objects: list[TileMapObject] = []
         self.layers: list[TileMapLayer] = []
 
+    @staticmethod
+    def _unpack_from_io(format: str, buffer: BytesIO) -> tuple[Any, ...]:
+        return struct.unpack(format, buffer.read(struct.calcsize(format)))
+
     @classmethod
     def from_bytes(cls, content: bytes) -> "TileMap":
-        map = cls(
-            Path(__file__).parent.parent / "resources" / "images" / "tilesets.png"
-        )
-        now = 0
-        if struct.unpack_from("<3s", content)[0] != b"MAP":
+        map = cls()
+        buffer = BytesIO(content)
+        if TileMap._unpack_from_io("<3s", buffer)[0] != b"MAP":
             raise ValueError("wrong file header")
-        now += struct.calcsize("<3s")
-        if struct.unpack_from("<B", content, now)[0] != 1:
+        if TileMap._unpack_from_io("<B", buffer)[0] != 1:
             raise ValueError("wrong format version")
-        now += struct.calcsize("<B")
-        _, _ = struct.unpack_from("<2H", content, now)
-        now += struct.calcsize("<2H")
-        animated_tiles_count, objects_count, layers_count = struct.unpack_from(
-            "3H", content, now
+        map.tile_width, map.tile_height = TileMap._unpack_from_io("<2H", buffer)
+        animated_tiles_count, objects_count, layers_count = TileMap._unpack_from_io(
+            "<3H", buffer
         )
-        now += struct.calcsize("<3H")
         for _ in range(animated_tiles_count):
-            is_playing = bool(struct.unpack_from("<B", content, now)[0])
-            now += struct.calcsize("<B")
-            length = int(struct.unpack_from("<H", content, now)[0])
-            now += struct.calcsize("<H")
-            data = struct.unpack_from(f"<{length * 4}h", content, now)
-            now += struct.calcsize(f"<{length * 4}h")
+            is_playing = bool(TileMap._unpack_from_io("<B", buffer)[0])
+            length = int(TileMap._unpack_from_io("<H", buffer)[0])
+            data = TileMap._unpack_from_io(f"<{length * 4}h", buffer)
             frames = []
             for n in range(length):
                 frames.append(data[4 * n : 4 * n + 4])
             map.animated_tiles.append(AnimatedTileSet(is_playing, frames))
         for _ in range(objects_count):
-            obj_type, flag, class_name, object_name = struct.unpack_from("<2B8s8s", content, now)
-            now += struct.calcsize("<2B8s8s")
-            data = struct.unpack_from("<4h", content, now)
-            now += struct.calcsize("<4h")
+            obj_type, flag, class_name, object_name = TileMap._unpack_from_io(
+                "<2B8s8s", buffer
+            )
+            class_name = class_name.strip()
+            object_name = object_name.strip()
+            data = TileMap._unpack_from_io("<4h", buffer)
             map.objects.append(TileMapObject(obj_type, flag, class_name, object_name, data))  # type: ignore
         for _ in range(layers_count):
-            area = struct.unpack_from("<4h", content, now)
-            now += struct.calcsize("<4h")
-            data = list(struct.unpack_from(f"<{area[2] * area[3]}h", content, now))
-            now += struct.calcsize(f"<{area[2] * area[3]}h")
+            area = TileMap._unpack_from_io("<4h", buffer)
+            data = list(TileMap._unpack_from_io(f"<{area[2] * area[3]}h", buffer))
             map.layers.append(TileMapLayer(area, data))
+        buffer.close()
         return map
 
     def to_bytes(self) -> bytes:
@@ -189,6 +190,17 @@ class TileMap:
         return binary
 
 
+class MapViewer:
+    def __init__(self, window: Window, tileset_path: Path) -> None:
+        self._window = window
+        self._tileset = ImageGrid(load_image(str(tileset_path)), 20, 16)
+        self.tilemap = TileMap()
+        self.tilemap.animated_tiles = [window_anime, light_anime, glow_anime]
+
+    def draw(self) -> None:
+        Rectangle(10, 10, 50, 50, color=(85, 85, 255)).draw()
+
+
 class MapEditorWindow(Window):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -198,8 +210,7 @@ class MapEditorWindow(Window):
         self.tileset_path = (
             Path(__file__).parent.parent / "resources" / "images" / "tilesets.png"
         )
-        self.tilemap = TileMap(self.tileset_path)
-        self.tilemap.animated_tiles = [window_anime, light_anime, glow_anime]
+        self.tilemap = MapViewer(self, self.tileset_path)
         self.vbar = Rectangle(self.width / 3, 0, 3, self.height, color=(85, 85, 85))
         self.hbar = Rectangle(0, self.height / 2, self.vbar.x, 3, color=(85, 85, 85))
         self.split_line = Line(0, 0, 0, 0, color=(0, 0, 0))
@@ -219,6 +230,7 @@ class MapEditorWindow(Window):
         self.can_drag_bar = False
         # 0 for left, 1 for right, -1 for disabled
         self.drag_which_frame = -1
+        self.tilemap_tvec = Vec3(0, 0, 0)
 
     def on_draw(self) -> None:
         self.clear()
@@ -233,9 +245,7 @@ class MapEditorWindow(Window):
             cursor = self.get_system_mouse_cursor(self.CURSOR_SIZE)
             self.set_mouse_cursor(cursor)
         else:
-            cursor = self.get_system_mouse_cursor(
-                self.CURSOR_DEFAULT  # type: ignore
-            )
+            cursor = self.get_system_mouse_cursor(self.CURSOR_DEFAULT)  # type: ignore
             self.set_mouse_cursor(cursor)
         self.vbar.x = min(self.width - 8, max(self.vbar.x, 5))
         self.vbar.draw()
@@ -287,6 +297,18 @@ class MapEditorWindow(Window):
             self.split_line.draw()
         self.select_label1.draw()
         self.select_label2.draw()
+        glScissor(
+            int(self.vbar.x + self.vbar.width),
+            0,
+            int(self.width - self.vbar.x - self.vbar.width),
+            self.height,
+        )
+        prev_view = self.view
+        self.view = Mat4.from_translation(self.tilemap_tvec) @ Mat4.from_translation(
+            Vec3(self.vbar.x + self.vbar.width)
+        )
+        self.tilemap.draw()
+        self.view = prev_view
         glDisable(GL_SCISSOR_TEST)
 
     def on_resize(self, width: int, height: int) -> None:
@@ -316,6 +338,9 @@ class MapEditorWindow(Window):
         if self.drag_which_frame == 0:
             self.tileset_sprite.x += dx
             self.tileset_sprite.y += dy
+        elif self.drag_which_frame == 1:
+            vx, vy, _ = self.tilemap_tvec
+            self.tilemap_tvec = Vec3(vx + dx, vy + dy)
 
     def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
         if (x, y) in self.vbar:
