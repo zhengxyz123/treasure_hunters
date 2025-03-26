@@ -112,11 +112,14 @@ TileMap* LoadTileMap(const unsigned char* data, size_t size) {
     SDL_RWread(map_data, header, sizeof(char), 3);
     if (strncmp(header, "MAP", 3)) {
         SDL_RWclose(map_data);
+        free(map);
         return NULL;
     }
     unsigned char version;
     SDL_RWread(map_data, &version, sizeof(unsigned char), 1);
     if (version != 1) {
+        SDL_RWclose(map_data);
+        free(map);
         return NULL;
     }
     unsigned short tile_size[2];
@@ -154,10 +157,11 @@ TileMap* LoadTileMap(const unsigned char* data, size_t size) {
         SDL_RWread(map_data, type_and_flag, sizeof(unsigned char), 2);
         map->object[i].type = type_and_flag[0];
         map->object[i].flag = type_and_flag[1];
-        char name[16];
-        SDL_RWread(map_data, name, sizeof(char), 16);
+        char name[8];
+        SDL_RWread(map_data, name, sizeof(char), 8);
         strncpy(map->object[i].class_name, name, 8);
-        strncpy(map->object[i].object_name, name + 8, 8);
+        SDL_RWread(map_data, name, sizeof(char), 8);
+        strncpy(map->object[i].object_name, name, 8);
         short data[4];
         SDL_RWread(map_data, data, sizeof(short), 4);
         if (map->object[i].type == OBJECT_TYPE_POINT) {

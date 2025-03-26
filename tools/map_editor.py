@@ -36,7 +36,6 @@ from pyglet.gl import (
     glEnable,
     glScissor,
 )
-from pyglet.graphics import draw
 from pyglet.image import ImageGrid, Texture
 from pyglet.image import load as load_image
 from pyglet.math import Mat4, Vec3
@@ -142,13 +141,15 @@ class TileMap:
 
     @classmethod
     def from_bytes(cls, content: bytes) -> "TileMap":
-        map = cls()
+        the_map = cls()
         buffer = BytesIO(content)
         if TileMap._unpack_from_io("<3s", buffer)[0] != b"MAP":
+            buffer.close()
             raise ValueError("wrong file header")
         if TileMap._unpack_from_io("<B", buffer)[0] != 1:
+            buffer.close()
             raise ValueError("wrong format version")
-        map.tile_width, map.tile_height = TileMap._unpack_from_io("<2H", buffer)
+        the_map.tile_width, the_map.tile_height = TileMap._unpack_from_io("<2H", buffer)
         animated_tiles_count, objects_count, layers_count = TileMap._unpack_from_io(
             "<3H", buffer
         )
@@ -159,7 +160,7 @@ class TileMap:
             frames = []
             for n in range(length):
                 frames.append(data[4 * n : 4 * n + 4])
-            map.animated_tiles.append(AnimatedTileSet(is_playing, frames))
+            the_map.animated_tiles.append(AnimatedTileSet(is_playing, frames))
         for _ in range(objects_count):
             obj_type, flag, class_name, object_name = TileMap._unpack_from_io(
                 "<2B8s8s", buffer
@@ -167,13 +168,13 @@ class TileMap:
             class_name = class_name.strip()
             object_name = object_name.strip()
             data = TileMap._unpack_from_io("<4h", buffer)
-            map.objects.append(TileMapObject(obj_type, flag, class_name, object_name, data))  # type: ignore
+            the_map.objects.append(TileMapObject(obj_type, flag, class_name, object_name, data))  # type: ignore
         for _ in range(layers_count):
             area = TileMap._unpack_from_io("<4h", buffer)
             data = list(TileMap._unpack_from_io(f"<{area[2] * area[3]}h", buffer))
-            map.layers.append(TileMapLayer(area, data))
+            the_map.layers.append(TileMapLayer(area, data))
         buffer.close()
-        return map
+        return the_map
 
     def to_bytes(self) -> bytes:
         binary = struct.pack("<3sB", b"MAP", 1)
@@ -191,14 +192,64 @@ class TileMap:
 
 
 class MapViewer:
-    def __init__(self, window: Window, tileset_path: Path) -> None:
+    def __init__(self, window: "MapEditorWindow", tileset_path: Path) -> None:
         self._window = window
+        self._x = 0.0
+        self._y = 0.0
+        self._width = 0.0
+        self._height = 0.0
         self._tileset = ImageGrid(load_image(str(tileset_path)), 20, 16)
         self.tilemap = TileMap()
         self.tilemap.animated_tiles = [window_anime, light_anime, glow_anime]
+        self.rect = Rectangle(0, 0, 50, 50, color=(85, 85, 255))
+
+    @property
+    def x(self) -> float:
+        return self._x
+
+    @x.setter
+    def x(self, value: float) -> None:
+        self._x = value
+
+    @property
+    def y(self) -> float:
+        return self._y
+
+    @y.setter
+    def y(self, value: float) -> None:
+        self._y = value
+
+    @property
+    def width(self) -> float:
+        return self._width
+
+    @width.setter
+    def width(self, value: float) -> None:
+        self._width = value
+
+    @property
+    def height(self) -> float:
+        return self._height
+
+    @height.setter
+    def height(self, value: float) -> None:
+        self._height = value
+
+    def on_resize(self, width: int, height: int) -> None:
+        self.rect.x = (width - 50) / 2
+        self.rect.y = (height - 50) / 2
+
+    def on_mouse_scroll(self, x: int, y: int, scroll_x: float, scroll_y: float) -> None:
+        pass
+
+    def on_mouse_motion(self, x: int, y: int, dx: int, dy: int) -> None:
+        pass
+
+    def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
+        pass
 
     def draw(self) -> None:
-        Rectangle(10, 10, 50, 50, color=(85, 85, 255)).draw()
+        self.rect.draw()
 
 
 class MapEditorWindow(Window):
@@ -210,7 +261,6 @@ class MapEditorWindow(Window):
         self.tileset_path = (
             Path(__file__).parent.parent / "resources" / "images" / "tilesets.png"
         )
-        self.tilemap = MapViewer(self, self.tileset_path)
         self.vbar = Rectangle(self.width / 3, 0, 3, self.height, color=(85, 85, 85))
         self.hbar = Rectangle(0, self.height / 2, self.vbar.x, 3, color=(85, 85, 85))
         self.split_line = Line(0, 0, 0, 0, color=(0, 0, 0))
@@ -227,9 +277,14 @@ class MapEditorWindow(Window):
 
         self.can_drag_vbar = False
         self.can_drag_hbar = False
-        self.can_drag_bar = False
-        # 0 for left, 1 for right, -1 for disabled
+        self.can_drag_all_bar = False
+        # 0 for tile selecting frame
+        # 1 for editor frame
+        # -1 for disabled
         self.drag_which_frame = -1
+        self.tilemap = MapViewer(self, self.tileset_path)
+        self.tilemap.width = self.width - self.vbar.x - self.vbar.width
+        self.tilemap.height = self.height
         self.tilemap_tvec = Vec3(0, 0, 0)
 
     def on_draw(self) -> None:
@@ -241,7 +296,7 @@ class MapEditorWindow(Window):
         elif self.can_drag_hbar:
             cursor = self.get_system_mouse_cursor(self.CURSOR_SIZE_UP_DOWN)
             self.set_mouse_cursor(cursor)
-        elif self.drag_which_frame > -1 or self.can_drag_bar:
+        elif self.drag_which_frame > -1 or self.can_drag_all_bar:
             cursor = self.get_system_mouse_cursor(self.CURSOR_SIZE)
             self.set_mouse_cursor(cursor)
         else:
@@ -313,6 +368,9 @@ class MapEditorWindow(Window):
 
     def on_resize(self, width: int, height: int) -> None:
         self.vbar.height = height
+        self.tilemap.width = self.width - self.vbar.x - self.vbar.width
+        self.tilemap.height = self.height
+        self.tilemap.on_resize(int(width - self.vbar.x - self.vbar.width), height)
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: float, scroll_y: float) -> None:
         if x < self.vbar.x and y < self.hbar.y:
@@ -325,14 +383,18 @@ class MapEditorWindow(Window):
                 self.tileset_sprite.scale / prev_scale * dy,
             )
             self.tileset_sprite.position = (x - dx, y - dy, 0)
+        elif x > self.vbar.x + self.vbar.width:
+            self.tilemap.on_mouse_scroll(
+                int(x - self.vbar.x - self.vbar.width), y, scroll_x, scroll_y
+            )
 
     def on_mouse_drag(
         self, x: int, y: int, dx: int, dy: int, buttons: int, modifiers: int
     ) -> None:
-        if self.can_drag_vbar or self.can_drag_bar:
+        if self.can_drag_vbar or self.can_drag_all_bar:
             self.vbar.x = x
             self.vbar.x = min(self.width - 8, max(self.vbar.x, 5))
-        if self.can_drag_hbar or self.can_drag_bar:
+        if self.can_drag_hbar or self.can_drag_all_bar:
             self.hbar.y = y
             self.hbar.y = min(self.height - 8, max(self.hbar.y, 5))
         if self.drag_which_frame == 0:
@@ -354,13 +416,21 @@ class MapEditorWindow(Window):
             self.hbar.color = (170, 170, 170)
         else:
             self.hbar.color = (85, 85, 85)
+        if x > self.vbar.x + self.vbar.width:
+            self.tilemap.on_mouse_motion(
+                int(x - self.vbar.x - self.vbar.width), y, dx, dy
+            )
 
     def on_mouse_press(self, x: int, y: int, button: int, modifiers: int) -> None:
+        if x > self.vbar.x + self.vbar.width:
+            self.tilemap.on_mouse_press(
+                int(x - self.vbar.x - self.vbar.width), y, button, modifiers
+            )
         if (
             x,
             y,
         ) in self.vbar and self.hbar.y - 3 < y < self.hbar.y + self.hbar.height + 3:
-            self.can_drag_bar = True
+            self.can_drag_all_bar = True
         elif button == LEFT and (x, y) in self.vbar:
             self.can_drag_vbar = True
         elif button == LEFT and (x, y) in self.hbar:
@@ -392,7 +462,7 @@ class MapEditorWindow(Window):
     def on_mouse_release(self, x: int, y: int, button: int, modifiers: int) -> None:
         self.can_drag_vbar = False
         self.can_drag_hbar = False
-        self.can_drag_bar = False
+        self.can_drag_all_bar = False
         self.drag_which_frame = -1
 
 
