@@ -37,6 +37,7 @@ typedef struct {
 
 typedef struct {
     int is_playing;
+    char name[8];
     size_t count;
     SDL_Rect* frame;
 } AnimatedTile;

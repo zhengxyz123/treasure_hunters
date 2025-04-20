@@ -56,6 +56,8 @@
   +-------------+------------------+-------------------------------+
   | is_playing  | unsigned char    | Should the animation playing? |
   +-------------+------------------+-------------------------------+
+  | name        | char[8]          | Name of animation             |
+  +-------------+------------------+-------------------------------+
   | count       | unsigned short   | Frame count                   |
   +-------------+------------------+-------------------------------+
   | frame       | short[4 * count] | Store count time of tuple     |
@@ -140,6 +142,9 @@ TileMap* LoadTileMap(const unsigned char* data, size_t size) {
         unsigned char is_playing;
         SDL_RWread(map_data, &is_playing, sizeof(unsigned char), 1);
         map->animated_tile[i].is_playing = is_playing;
+        char name[8];
+        SDL_RWread(map_data, name, sizeof(char), 8);
+        strncpy(map->animated_tile[i].name, name, 8);
         unsigned short count;
         SDL_RWread(map_data, &count, sizeof(unsigned short), 1);
         map->animated_tile[i].count = count;

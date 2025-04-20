@@ -25,7 +25,7 @@ import struct
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import pyglet
 from pyglet.gl import (
@@ -49,12 +49,14 @@ from pyglet.window.mouse import LEFT, MIDDLE
 @dataclass
 class AnimatedTileSet:
     is_playing: bool
+    name: str
     frames: list[tuple[int, int, int, int]]
 
     def to_bytes(self) -> bytes:
         return struct.pack(
-            f"<BH{len(self.frames) * 4}h",
+            f"<B8sH{len(self.frames) * 4}h",
             self.is_playing,
+            (self.name[:8].encode() if len(self.name) > 8 else self.name.ljust(8).encode()),
             len(self.frames),
             *[item for sublist in self.frames for item in sublist],
         )
@@ -69,9 +71,10 @@ for n in range(12, 15):
         window_frame.append((m, n, 1, 1))
 for i in range(15):
     window_frame.append((i, 15, 1, 1))
-window_anime = AnimatedTileSet(is_playing=True, frames=window_frame)
+window_anime = AnimatedTileSet(is_playing=True, name="window", frames=window_frame)
 light_anime = AnimatedTileSet(
     is_playing=True,
+    name="light",
     frames=[
         (14, 1, 1, 1),
         (15, 1, 1, 1),
@@ -82,7 +85,9 @@ light_anime = AnimatedTileSet(
     ],
 )
 glow_anime = AnimatedTileSet(
-    is_playing=True, frames=[(12, 3, 1, 1), (13, 3, 1, 1), (14, 3, 1, 1), (15, 3, 1, 1)]
+    is_playing=True,
+    name="glow",
+    frames=[(12, 3, 1, 1), (13, 3, 1, 1), (14, 3, 1, 1), (15, 3, 1, 1)],
 )
 
 
@@ -100,14 +105,14 @@ class TileMapObject:
             self.obj_type,
             self.flag & 0xFF,
             (
-                self.class_name[:8]
-                if len(self.class_name) <= 8
-                else self.class_name.ljust(8)
+                self.class_name[:8].encode()
+                if len(self.class_name) > 8
+                else self.class_name.ljust(8).encode()
             ),
             (
-                self.object_name[:8]
-                if len(self.object_name) <= 8
-                else self.object_name.ljust(8)
+                self.object_name[:8].encode()
+                if len(self.object_name) > 8
+                else self.object_name.ljust(8).encode()
             ),
             *self.data,
         )
@@ -155,18 +160,19 @@ class TileMap:
         )
         for _ in range(animated_tiles_count):
             is_playing = bool(TileMap._unpack_from_io("<B", buffer)[0])
+            name = TileMap._unpack_from_io("<8s", buffer)[0].decode().strip()
             length = int(TileMap._unpack_from_io("<H", buffer)[0])
             data = TileMap._unpack_from_io(f"<{length * 4}h", buffer)
             frames = []
             for n in range(length):
                 frames.append(data[4 * n : 4 * n + 4])
-            the_map.animated_tiles.append(AnimatedTileSet(is_playing, frames))
+            the_map.animated_tiles.append(AnimatedTileSet(is_playing, name, frames))
         for _ in range(objects_count):
             obj_type, flag, class_name, object_name = TileMap._unpack_from_io(
                 "<2B8s8s", buffer
             )
-            class_name = class_name.strip()
-            object_name = object_name.strip()
+            class_name = class_name.strip().decode()
+            object_name = object_name.strip().decode()
             data = TileMap._unpack_from_io("<4h", buffer)
             the_map.objects.append(TileMapObject(obj_type, flag, class_name, object_name, data))  # type: ignore
         for _ in range(layers_count):
@@ -194,30 +200,13 @@ class TileMap:
 class MapViewer:
     def __init__(self, window: "MapEditorWindow", tileset_path: Path) -> None:
         self._window = window
-        self._x = 0.0
-        self._y = 0.0
         self._width = 0.0
         self._height = 0.0
-        self._tileset = ImageGrid(load_image(str(tileset_path)), 20, 16)
+        self._tileset = ImageGrid(load_image(str(tileset_path)), 16, 20)
+        self._now_tile = (0, 0)
+        self._sprite = Sprite(self._tileset[self._now_tile])
         self.tilemap = TileMap()
         self.tilemap.animated_tiles = [window_anime, light_anime, glow_anime]
-        self.rect = Rectangle(0, 0, 50, 50, color=(85, 85, 255))
-
-    @property
-    def x(self) -> float:
-        return self._x
-
-    @x.setter
-    def x(self, value: float) -> None:
-        self._x = value
-
-    @property
-    def y(self) -> float:
-        return self._y
-
-    @y.setter
-    def y(self, value: float) -> None:
-        self._y = value
 
     @property
     def width(self) -> float:
@@ -235,9 +224,18 @@ class MapViewer:
     def height(self, value: float) -> None:
         self._height = value
 
+    @property
+    def now_tile(self) -> tuple[int, int]:
+        return self._now_tile
+
+    @now_tile.setter
+    def now_tile(self, tile: Iterable[int]) -> None:
+        x, y = tile
+        self._now_tile = (x, y)
+        self._sprite.image = self._tileset[(15 - y, x)]
+
     def on_resize(self, width: int, height: int) -> None:
-        self.rect.x = (width - 50) / 2
-        self.rect.y = (height - 50) / 2
+        pass
 
     def on_mouse_scroll(self, x: int, y: int, scroll_x: float, scroll_y: float) -> None:
         pass
@@ -249,7 +247,7 @@ class MapViewer:
         pass
 
     def draw(self) -> None:
-        self.rect.draw()
+        self._sprite.draw()
 
 
 class MapEditorWindow(Window):
@@ -285,6 +283,7 @@ class MapEditorWindow(Window):
         self.tilemap = MapViewer(self, self.tileset_path)
         self.tilemap.width = self.width - self.vbar.x - self.vbar.width
         self.tilemap.height = self.height
+        self.tilemap.now_tile = (0, 0)
         self.tilemap_tvec = Vec3(0, 0, 0)
 
     def on_draw(self) -> None:
@@ -451,6 +450,7 @@ class MapEditorWindow(Window):
                     (y - self.tileset_sprite.y) // (32 * self.tileset_sprite.scale)
                 )
                 self.selected_tile = [sx, sy]
+                self.tilemap.now_tile = (sx, sy)
                 self.select_label1.text = f"({sx}, {sy}): {sx + 20 * sy + 1}"
                 self.select_label2.text = self.select_label1.text
         elif button == MIDDLE:

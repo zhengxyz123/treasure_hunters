@@ -10,7 +10,7 @@ if(MSVC)
     add_compile_definitions(_AMD64_)
     add_link_options(/SUBSYSTEM:WINDOWS)
 else()
-    add_compile_options(-Wall -O3)
+    add_compile_options(-Wall -Werror -O3)
 endif()
 
 set(CJSON_DIR ${CMAKE_SOURCE_DIR}/extern/cjson)
