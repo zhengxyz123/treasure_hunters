@@ -38,15 +38,14 @@
 GameApp global_app = {
     .status = GAMESTATUS_NORMAL,
     .joystick = {.available = 0, .which = INT_MIN},
-    .should_quit = 0
+    .should_quit = 0,
+    .window_focused = 1
 };
 Setting global_setting = {
-    .interface_size = 2.5,
-    .auto_detect_size = 1,
     .fullscreen = 0,
     .music_volume = 64,
     .sfx_volume = 64,
-    .slience = 0
+    .mute_when_unfocused = 1
 };
 
 /* main function for Linux */
@@ -109,10 +108,12 @@ int main(int argc, char* argv[]) {
     InitSetting();
     SDL_SetWindowFullscreen(global_app.window, global_setting.fullscreen);
     Mix_Volume(
-        MUSIC_CHANNEL, global_setting.slience ? 0 : global_setting.music_volume
+        MUSIC_CHANNEL,
+        global_setting.mute_when_unfocused ? 0 : global_setting.music_volume
     );
     Mix_Volume(
-        SFX_CHANNEL, global_setting.slience ? 0 : global_setting.sfx_volume
+        SFX_CHANNEL,
+        global_setting.mute_when_unfocused ? 0 : global_setting.sfx_volume
     );
 
     /* setup scenes */
@@ -133,6 +134,26 @@ int main(int argc, char* argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
+                case SDL_WINDOWEVENT:
+                    if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+                        global_app.window_focused = 0;
+                        if (global_setting.mute_when_unfocused) {
+                            Mix_Volume(MUSIC_CHANNEL, 0);
+                            Mix_Volume(SFX_CHANNEL, 0);
+                        }
+                    } else if (event.window.event ==
+                               SDL_WINDOWEVENT_FOCUS_GAINED) {
+                        global_app.window_focused = 1;
+                        if (global_setting.mute_when_unfocused) {
+                            Mix_Volume(
+                                MUSIC_CHANNEL, global_setting.music_volume
+                            );
+                            Mix_Volume(SFX_CHANNEL, global_setting.sfx_volume);
+                        }
+                    } else if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
+                        ClearWidgets();
+                    }
+                    break;
                 case SDL_CONTROLLERDEVICEADDED:
                     if (!global_app.joystick.available) {
                         global_app.joystick.device =
@@ -201,7 +222,20 @@ int WinMain(
     HINSTANCE hInstance, HINSTANCE hPrevInstnce, LPSTR lpCmdLine, int nShowCmd
 ) {
     int argc;
-    char** argv = CommandLineToArgvW(lpCmdLine, &argc);
-    return main(argc, argv);
+    LPWSTR* argvw = CommandLineToArgvW(lpCmdLine, &argc);
+    char** argv = (char**)calloc(argc, sizeof(char*));
+    for (int i = 0; i < argc; ++i) {
+        int len =
+            WideCharToMultiByte(CP_UTF8, 0, argvw[i], -1, NULL, 0, NULL, NULL);
+        argv[i] = (char*)calloc(len, sizeof(char));
+        WideCharToMultiByte(CP_UTF8, 0, argvw[i], -1, argv[i], len, NULL, NULL);
+    }
+    int result = main(argc, argv);
+    for (int i = 0; i < argc, ++i) {
+        free(argv[i]);
+    }
+    free(argv);
+    LocalFree(argvw);
+    return result;
 }
 #endif

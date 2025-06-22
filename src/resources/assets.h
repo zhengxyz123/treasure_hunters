@@ -13,7 +13,7 @@ extern const unsigned char big_text_png_content[1114];
 extern const unsigned char small_text_png_content[1512];
 extern const unsigned char slider_png_content[570];
 extern const unsigned char cursor_png_content[301];
-extern const unsigned char input_prompt_png_content[1975];
+extern const unsigned char input_prompt_png_content[2057];
 extern const unsigned char small_cloud3_png_content[571];
 extern const unsigned char small_cloud2_png_content[507];
 extern const unsigned char small_cloud1_png_content[357];

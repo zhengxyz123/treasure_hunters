@@ -36,22 +36,17 @@ Scene setting_scene = {
     .on_cbutton_down = SettingSceneOnControllerButtonDown
 };
 
-SliderData ui_size_data = {.min = 1.0, .max = 5.0};
-int auto_detect_size_data = 0;
 int fullscreen_data = 0;
 SliderData music_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
 SliderData sfx_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
-int slience_data = 0;
+int mute_data = 0;
 SettingItem settings_array[] = {
     {SETTING_TYPE_SUBTITLE, "Display"},
-    {SETTING_TYPE_SLIDER, "Interface size", {.slider = &ui_size_data}},
-    {SETTING_TYPE_OPTION, "Auto detect size", {.option = &auto_detect_size_data}
-    },
     {SETTING_TYPE_OPTION, "Fullscreen", {.option = &fullscreen_data}},
     {SETTING_TYPE_SUBTITLE, "Sound"},
     {SETTING_TYPE_SLIDER, "Music volume", {.slider = &music_volume_data}},
     {SETTING_TYPE_SLIDER, "SFX volume", {.slider = &sfx_volume_data}},
-    {SETTING_TYPE_OPTION, "Slience", {.option = &slience_data}},
+    {SETTING_TYPE_OPTION, "Mute when\nlost focus", {.option = &mute_data}},
     {SETTING_TYPE_SUBTITLE, " "},
     {SETTING_TYPE_BUTTON, "Reset settings", {.button = 0}},
     {SETTING_TYPE_BUTTON, "Back", {.button = 1}}
@@ -64,21 +59,26 @@ TextStyle subtitle_text_style = {
 TextStyle item_text_style_normal = {
     .size = 1.0,
     .color = {0, 0, 0, 255},
+    .align = TEXT_ALIGN_RIGHT,
     .anchor = TEXT_ANCHOR_X_RIGHT | TEXT_ANCHOR_Y_TOP
 };
 TextStyle item_text_style_active = {
     .size = 1.0,
     .color = {0, 0, 0, 128},
+    .align = TEXT_ALIGN_RIGHT,
     .anchor = TEXT_ANCHOR_X_RIGHT | TEXT_ANCHOR_Y_TOP
+};
+TextStyle hint_style = {
+    .size = 1.0,
+    .color = {0, 0, 0, 255},
+    .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_BOTTOM
 };
 
 void SettingSceneInit() {
-    ui_size_data.now = global_setting.interface_size;
-    auto_detect_size_data = global_setting.auto_detect_size;
     fullscreen_data = global_setting.fullscreen;
     music_volume_data.now = global_setting.music_volume;
     sfx_volume_data.now = global_setting.sfx_volume;
-    slience_data = global_setting.slience;
+    mute_data = global_setting.mute_when_unfocused;
 }
 
 void SettingSceneTick() {
@@ -89,26 +89,24 @@ void SettingSceneTick() {
     float max_text_w;
     item_text_style_normal.size = 1.0;
     CalcSmallTextSize(
-        settings_array[2].name, &item_text_style_normal, &max_text_w, NULL
+        settings_array[3].name, &item_text_style_normal, &max_text_w, NULL
     );
-    if (global_setting.auto_detect_size) {
-        global_setting.interface_size =
-            0.75 * win_h / items_h_coeff / SMALL_TEXT_HEIGHT;
-        if (win_w / 2.0 - 20 - global_setting.interface_size * max_text_w < 0) {
-            global_setting.interface_size = (win_w / 2.0 - 20) / max_text_w;
-        }
-        if (global_setting.interface_size < 2) {
-            global_setting.interface_size = 2;
-        }
+    global_app.interface_size =
+        0.75 * win_h / items_h_coeff / SMALL_TEXT_HEIGHT;
+    if (win_w / 2.0 - 20 - global_app.interface_size * max_text_w < 0) {
+        global_app.interface_size = (win_w / 2.0 - 20) / max_text_w;
     }
-    float slider_w = max_text_w * global_setting.interface_size - 20;
-    float widget_y =
-        ((float)win_h -
-         items_h_coeff * global_setting.interface_size * SMALL_TEXT_HEIGHT) /
-        2.0;
-    subtitle_text_style.size = global_setting.interface_size;
-    item_text_style_normal.size = global_setting.interface_size;
-    item_text_style_active.size = global_setting.interface_size;
+    if (global_app.interface_size < 1) {
+        global_app.interface_size = 1;
+    }
+    float slider_w = max_text_w * global_app.interface_size - 20;
+    float widget_y = ((float)win_h - items_h_coeff * global_app.interface_size *
+                                         SMALL_TEXT_HEIGHT) /
+                     2.0;
+    subtitle_text_style.size = global_app.interface_size;
+    item_text_style_normal.size = global_app.interface_size;
+    item_text_style_active.size = global_app.interface_size;
+    hint_style.size = global_app.interface_size / 1.2;
     DrawBackground();
     WidgetBegin();
     int now_widget = 0;
@@ -124,7 +122,8 @@ void SettingSceneTick() {
                     )) {
                     button_clicked = settings_array[i].data.button;
                 }
-                widget_y += text_h * 2.25;
+                widget_y += text_h + global_app.interface_size *
+                                         SMALL_TEXT_HEIGHT * 1.25;
                 break;
             case SETTING_TYPE_OPTION:
                 CalcSmallTextSize(
@@ -139,10 +138,14 @@ void SettingSceneTick() {
                     settings_array[i].name
                 );
                 WidgetOption(
-                    win_w / 2.0 + 10 + 4 * global_setting.interface_size,
-                    widget_y, settings_array[i].data.option
+                    win_w / 2.0 + 10 + 4 * global_app.interface_size,
+                    widget_y + (text_h -
+                                global_app.interface_size * SMALL_TEXT_HEIGHT) /
+                                   2,
+                    settings_array[i].data.option
                 );
-                widget_y += text_h * 2.25;
+                widget_y += text_h + global_app.interface_size *
+                                         SMALL_TEXT_HEIGHT * 1.25;
                 break;
             case SETTING_TYPE_SLIDER:
                 CalcSmallTextSize(
@@ -157,10 +160,15 @@ void SettingSceneTick() {
                     settings_array[i].name
                 );
                 WidgetSlider(
-                    win_w / 2.0 + 10, widget_y, slider_w, text_h,
+                    win_w / 2.0 + 10,
+                    widget_y + (text_h -
+                                global_app.interface_size * SMALL_TEXT_HEIGHT) /
+                                   2,
+                    slider_w, SMALL_TEXT_HEIGHT * global_app.interface_size,
                     settings_array[i].data.slider
                 );
-                widget_y += text_h * 2.25;
+                widget_y += text_h + global_app.interface_size *
+                                         SMALL_TEXT_HEIGHT * 1.25;
                 break;
             case SETTING_TYPE_SUBTITLE:
                 CalcSmallTextSize(
@@ -171,46 +179,42 @@ void SettingSceneTick() {
                     win_w / 2.0, widget_y, &subtitle_text_style,
                     settings_array[i].name
                 );
-                widget_y += text_h * 2.25;
+                widget_y += text_h + global_app.interface_size *
+                                         SMALL_TEXT_HEIGHT * 1.25;
                 break;
         }
     }
     WidgetEnd();
+    if (global_app.joystick.available) {
+        DrawSmallText(
+            10, win_h - 5, &hint_style, "{1,13}{1,14}:Slider {1,1}:Back"
+        );
+    } else {
+        DrawSmallText(10, win_h - 5, &hint_style, "ESC:Back");
+    }
     if (button_clicked == 0) {
-        ui_size_data.now = 2.5;
-        auto_detect_size_data = 1;
         fullscreen_data = 0;
         music_volume_data.now = 64.0;
         sfx_volume_data.now = 64.0;
-        slience_data = 0;
+        mute_data = 1;
     } else if (button_clicked == 1) {
         BackToPrevScene();
     }
-    if (!ui_size_data.is_dragging) {
-        global_setting.interface_size = ui_size_data.now;
-    }
-    global_setting.auto_detect_size = auto_detect_size_data;
     if (global_setting.fullscreen != fullscreen_data) {
         SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
     }
     global_setting.fullscreen = fullscreen_data;
     if (global_setting.music_volume != (int)music_volume_data.now &&
-        !global_setting.slience) {
+        global_app.window_focused) {
         Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
     }
     global_setting.music_volume = (int)music_volume_data.now;
     if (global_setting.sfx_volume != (int)sfx_volume_data.now &&
-        !global_setting.slience) {
+        global_app.window_focused) {
         Mix_Volume(SFX_CHANNEL, (int)sfx_volume_data.now);
     }
     global_setting.sfx_volume = (int)sfx_volume_data.now;
-    if (global_setting.slience != slience_data) {
-        Mix_Volume(
-            MUSIC_CHANNEL, slience_data ? 0 : global_setting.music_volume
-        );
-        Mix_Volume(SFX_CHANNEL, slience_data ? 0 : global_setting.sfx_volume);
-    }
-    global_setting.slience = slience_data;
+    global_setting.mute_when_unfocused = mute_data;
 }
 
 void SettingSceneFree() {}

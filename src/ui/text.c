@@ -311,7 +311,7 @@ void DrawSmallText(
                 );
             } else if (arg0 == 1) {
                 // draw joystick icons
-                SDL_Rect icon_src = {16 * 0, 16 * arg1, 16, 16};
+                SDL_Rect icon_src = {16 * arg1, 16 * 0, 16, 16};
                 SDL_FRect icon_dst = text_dst;
                 if (style->has_shadow) {
                     icon_dst.w += style->shadow_offset.x * style->size;

@@ -24,12 +24,10 @@
 #define _TH_SETTING_H_
 
 typedef struct {
-    int auto_detect_size;
     int fullscreen;
-    float interface_size;
     int music_volume;
     int sfx_volume;
-    int slience;
+    int mute_when_unfocused;
 } Setting;
 
 void InitSetting();

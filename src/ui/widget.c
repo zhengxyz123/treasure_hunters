@@ -238,9 +238,9 @@ void WidgetBegin() {
         SDL_FRect rect = widget_list.data[widget_list.now];
         mouse_pos = (SDL_FPoint){rect.x + rect.w / 2, rect.y + rect.h / 2};
     }
-    normal_text_style.size = global_setting.interface_size;
-    hovering_text_style.size = global_setting.interface_size;
-    disabled_text_style.size = global_setting.interface_size;
+    normal_text_style.size = global_app.interface_size;
+    hovering_text_style.size = global_app.interface_size;
+    disabled_text_style.size = global_app.interface_size;
 }
 
 void CalcButtonTextSize(char* str, float* w, float* h) {
@@ -352,26 +352,22 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
     }
     if (data->is_dragging && global_app.joystick.available) {
         int dir = 0;
-        int right = SDL_GameControllerGetAxis(
-                        global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTX
-                    ) > 24576;
-        right = right ||
-                SDL_GameControllerGetButton(
-                    global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_RIGHT
-                );
-        int left = SDL_GameControllerGetAxis(
-                       global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTX
-                   ) < -24576;
-        left = left ||
-               SDL_GameControllerGetButton(
-                   global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_LEFT
-               );
+        int right =
+            SDL_GameControllerGetAxis(
+                global_app.joystick.device, SDL_CONTROLLER_AXIS_TRIGGERRIGHT
+            ) > 16384;
+        int left =
+            SDL_GameControllerGetAxis(
+                global_app.joystick.device, SDL_CONTROLLER_AXIS_TRIGGERLEFT
+            ) > 16384;
         if (right && SDL_GetTicks64() > slider_cooldown_time) {
             dir = 1;
-            slider_cooldown_time = SDL_GetTicks64() + 3 * TICK;
+            slider_cooldown_time = SDL_GetTicks64() + 10 * TICK;
+            Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
         } else if (left && SDL_GetTicks64() > slider_cooldown_time) {
             dir = -1;
-            slider_cooldown_time = SDL_GetTicks64() + 3 * TICK;
+            slider_cooldown_time = SDL_GetTicks64() + 10 * TICK;
+            Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
         }
         data->now = data->now + dir * (data->max - data->min) * 0.1;
         data->now = SDL_min(data->max, SDL_max(data->min, data->now));

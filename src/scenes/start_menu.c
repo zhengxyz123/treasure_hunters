@@ -46,13 +46,9 @@ void StartSceneInit() {}
 void StartSceneTick() {
     int win_w, win_h;
     SDL_GetWindowSize(global_app.window, &win_w, &win_h);
-    float prev_size = global_setting.interface_size;
-    if (global_setting.auto_detect_size) {
-        global_setting.interface_size =
-            0.25 * win_h / (4 * 1.5 * SMALL_TEXT_HEIGHT);
-        if (global_setting.interface_size < 2.0) {
-            global_setting.interface_size = 2.0;
-        }
+    global_app.interface_size = 0.25 * win_h / (4 * 1.5 * SMALL_TEXT_HEIGHT);
+    if (global_app.interface_size < 2.0) {
+        global_app.interface_size = 2.0;
     }
     DrawBackground();
     title_text_style.size =
@@ -83,7 +79,6 @@ void StartSceneTick() {
         global_app.should_quit = 1;
     }
     WidgetEnd();
-    global_setting.interface_size = prev_size;
 }
 
 void StartSceneFree() {}

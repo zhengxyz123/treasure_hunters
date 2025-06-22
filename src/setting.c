@@ -64,21 +64,9 @@ void InitSetting() {
     if (setting_json == NULL) {
         return;
     }
-    if ((object = cJSON_GetObjectItem(setting_json, "auto_detect_size")) !=
-        NULL) {
-        if (cJSON_IsBool(object)) {
-            global_setting.auto_detect_size = object->valueint;
-        }
-    }
     if ((object = cJSON_GetObjectItem(setting_json, "fullscreen")) != NULL) {
         if (cJSON_IsBool(object)) {
             global_setting.fullscreen = object->valueint;
-        }
-    }
-    if ((object = cJSON_GetObjectItem(setting_json, "interface_size")) !=
-        NULL) {
-        if (cJSON_IsNumber(object)) {
-            global_setting.interface_size = (float)object->valuedouble;
         }
     }
     if ((object = cJSON_GetObjectItem(setting_json, "music_volume")) != NULL) {
@@ -91,9 +79,10 @@ void InitSetting() {
             global_setting.sfx_volume = object->valueint;
         }
     }
-    if ((object = cJSON_GetObjectItem(setting_json, "slience")) != NULL) {
+    if ((object = cJSON_GetObjectItem(setting_json, "mute_when_unfocused")) !=
+        NULL) {
         if (cJSON_IsBool(object)) {
-            global_setting.slience = object->valueint;
+            global_setting.mute_when_unfocused = object->valueint;
         }
     }
     free(setting_content);
@@ -110,13 +99,7 @@ void SaveSetting() {
     }
     cJSON* setting_json = cJSON_CreateObject();
     cJSON_AddBoolToObject(
-        setting_json, "auto_detect_size", global_setting.auto_detect_size
-    );
-    cJSON_AddBoolToObject(
         setting_json, "fullscreen", global_setting.fullscreen
-    );
-    cJSON_AddNumberToObject(
-        setting_json, "interface_size", global_setting.interface_size
     );
     cJSON_AddNumberToObject(
         setting_json, "music_volume", global_setting.music_volume
@@ -124,7 +107,9 @@ void SaveSetting() {
     cJSON_AddNumberToObject(
         setting_json, "sfx_volume", global_setting.sfx_volume
     );
-    cJSON_AddBoolToObject(setting_json, "slience", global_setting.slience);
+    cJSON_AddBoolToObject(
+        setting_json, "mute_when_unfocused", global_setting.mute_when_unfocused
+    );
     size_t len = 128;
     char* json_string = (char*)calloc(len, sizeof(char));
     while (!cJSON_PrintPreallocated(setting_json, json_string, len, 0)) {

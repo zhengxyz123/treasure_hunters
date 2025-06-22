@@ -31,16 +31,20 @@ typedef enum {
 } TileMapObjectType;
 
 typedef struct {
-    SDL_Texture* texture;
-    int first_index;
-} TileSet;
+    int tile_id;
+    int frame_length;
+    size_t count;
+    int* frame;
+} AnimatedTile;
 
 typedef struct {
-    int is_playing;
-    char name[8];
-    size_t count;
-    SDL_Rect* frame;
-} AnimatedTile;
+    int tile_width;
+    int tile_height;
+    SDL_Texture* texture;
+    int first_index;
+    size_t animated_tile_count;
+    AnimatedTile* animated_tile;
+} TileSet;
 
 typedef struct {
     TileMapObjectType type;
@@ -59,12 +63,8 @@ typedef struct {
 } TileMayLayer;
 
 typedef struct {
-    int tile_width;
-    int tile_height;
     size_t tileset_count;
     TileSet* tileset;
-    size_t animated_tile_count;
-    AnimatedTile* animated_tile;
     size_t object_count;
     TileMapObject* object;
     size_t layer_count;

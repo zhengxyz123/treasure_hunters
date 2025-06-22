@@ -56,6 +56,7 @@ typedef struct {
     int argc;
     char** argv;
     char* exec_path;
+    float interface_size;
     GameStatus status;
     struct {
         SDL_GameController* device;
@@ -64,6 +65,7 @@ typedef struct {
     } joystick;
     int should_quit;
     SDL_Window* window;
+    int window_focused;
     SDL_Renderer* renderer;
 } GameApp;
 
