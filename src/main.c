@@ -28,12 +28,13 @@
 #include "scenes/subscene.h"
 #include "setting.h"
 #include "ui/text.h"
-#include <limits.h>
-#include <string.h>
 #include <time.h>
 #if defined(__WIN32__)
     #include <Windows.h>
 #endif
+
+#define CUTE_TILED_IMPLEMENTATION
+#include "../extern/cute_tiled.h"
 
 GameApp global_app = {
     .status = GAMESTATUS_NORMAL,
@@ -186,10 +187,9 @@ int main(int argc, char* argv[]) {
                 case SDL_QUIT:
                     global_app.should_quit = 1;
                     break;
-                default:
-                    HandleWidgetEvent(&event);
-                    HandleSceneEvent(&event);
             }
+            HandleWidgetEvent(&event);
+            HandleSceneEvent(&event);
         }
         SDL_RenderClear(global_app.renderer);
         TickScene();

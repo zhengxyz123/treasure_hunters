@@ -24,7 +24,7 @@ sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev
 Then, run:
 
 ```bash
-cmake -B build -D CMAKE_BUILD_TYPE="MinSizeRel" -D CMAKE_EXPORT_COMPILE_COMMANDS=1
+cmake -B build -D CMAKE_BUILD_TYPE="Release"
 cd build/
 make
 ```
@@ -40,8 +40,7 @@ Then, run:
 
 ```bash
 cmake -B build/
-      -D CMAKE_BUILD_TYPE="MinSizeRel"
-      -D CMAKE_EXPORT_COMPILE_COMMANDS=1
+      -D CMAKE_BUILD_TYPE="Release"
       -D CMAKE_PREFIX_PATH="/path/to/SDL2/cmake/;/path/to/SDL2_image/cmake;/path/to/SDL2_mixer/cmake"
 ```
 

@@ -27,7 +27,12 @@ Usually, resources directory is `resources/`, source file is `src/resources/asse
 header file is `src/resources/assets.h`.
 """
 
+import json
+import os
+import subprocess
 import sys
+import tempfile
+import shutil
 from pathlib import Path
 
 prefix_info = "This file was automatically generated, please do not modify it!"
@@ -56,6 +61,9 @@ header_content = """\
 
 
 def main(res_dir: Path, source: Path, header: Path) -> int:
+    if shutil.which("tiled") is None:
+        print("tiled must be installed")
+        return 1
     if not res_dir.exists() or not res_dir.is_dir():
         print(f"'{res_dir}' must be a directory")
         return 1
@@ -75,12 +83,37 @@ def main(res_dir: Path, source: Path, header: Path) -> int:
         for file in files:
             path = Path(root) / file
             var_name = path.name.replace(".", "_") + "_content"
-            var_value = f"{{{', '.join([str(c) for c in path.read_bytes()])}}};"
+            if path.suffix == ".tmx":
+                fd, json_map_path = tempfile.mkstemp()
+                os.close(fd)
+                subprocess.run(
+                    [
+                        str(shutil.which("tiled")),
+                        "--embed-tilesets",
+                        "--minimize",
+                        "--export-map",
+                        "json",
+                        path,
+                        json_map_path,
+                    ]
+                )
+                json_map = json.load(Path(json_map_path).open())
+                for tileset in json_map["tilesets"]:
+                    tileset["image"] = Path(tileset["image"]).name
+                json_map_bytes = json.dumps(json_map, separators=(",", ":")).encode()
+                var_value = f"{{{', '.join([str(c) for c in json_map_bytes])}}};"
+                array_len = len(json_map_bytes)
+                os.remove(json_map_path)
+            elif path.suffix in (".tsx", ".tiled-session"):
+                continue
+            else:
+                var_value = f"{{{', '.join([str(c) for c in path.read_bytes()])}}};"
+                array_len = len(path.read_bytes())
             source_content_line.append(
                 f"const unsigned char {var_name}[] = {var_value}"
             )
             header_content_line.append(
-                f"extern const unsigned char {var_name}[{len(path.read_bytes())}];"
+                f"extern const unsigned char {var_name}[{array_len}];"
             )
     c_source_content = (
         source_content.replace("{{info}}", prefix_info)
