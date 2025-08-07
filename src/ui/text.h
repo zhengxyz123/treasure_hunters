@@ -63,8 +63,8 @@ typedef enum {
     ICON_INFO
 } IconID;
 
-void InitTextSystem();
-void QuitTextSystem();
+void InitText();
+void QuitText();
 void CalcBigTextSize(char* str, TextStyle* style, float* w, float* h);
 float CalcBigTextWidthOneLine(char* str, TextStyle* style);
 void DrawBigText(float x, float y, TextStyle* style, const char* format, ...);

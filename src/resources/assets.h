@@ -3,18 +3,18 @@
 #ifndef _TH_ASSETS_H_
 #define _TH_ASSETS_H_
 
-extern const unsigned char test_tmx_content[1845];
+extern const unsigned char test_tmx_content[2987];
 extern const unsigned char switch_ogg_content[4588];
 extern const unsigned char click_ogg_content[4983];
 extern const unsigned char tilesets_png_content[9889];
 extern const unsigned char icon_png_content[604];
 extern const unsigned char captain_png_content[18632];
-extern const unsigned char yellow_button_png_content[384];
 extern const unsigned char big_text_png_content[1114];
 extern const unsigned char small_text_png_content[1512];
+extern const unsigned char yellow_panel_png_content[384];
 extern const unsigned char slider_png_content[570];
 extern const unsigned char cursor_png_content[301];
-extern const unsigned char input_prompt_png_content[2057];
+extern const unsigned char input_prompt_png_content[2559];
 extern const unsigned char small_cloud3_png_content[571];
 extern const unsigned char small_cloud2_png_content[507];
 extern const unsigned char small_cloud1_png_content[357];

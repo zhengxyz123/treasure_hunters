@@ -22,16 +22,18 @@
 
 #include "animation.h"
 #include "../global.h"
+#include "frametimer.h"
 
 extern GameApp global_app;
 
-Animation*
-CreateAnimation(SDL_Texture* texture, int duration, SDL_Rect* rect, int count) {
+Animation* CreateAnimation(
+    SDL_Texture* texture, float duration, SDL_Rect* rect, int count
+) {
     Animation* animation = (Animation*)calloc(1, sizeof(Animation));
     animation->count = count;
     animation->paused = 0;
-    animation->prev_tick = SDL_GetTicks();
     animation->now_clip = 0;
+    animation->dt = 0;
     animation->texture = texture;
     animation->clip = (AnimationClip*)calloc(count, sizeof(AnimationClip));
     for (int i = 0; i < count; ++i) {
@@ -46,15 +48,14 @@ void DrawAnimationEx(
     SDL_FPoint* center, SDL_RendererFlip flip
 ) {
     if (animation->paused) {
-        animation->prev_tick = SDL_GetTicks64();
         return;
     }
-    if (SDL_GetTicks() - animation->prev_tick >
-        animation->clip[animation->now_clip].duration) {
+    animation->dt += frametimer_delta_time(global_app.timer);
+    if (animation->dt > animation->clip[animation->now_clip].duration) {
         animation->now_clip = animation->now_clip + 1 > animation->count - 1
                                   ? 0
                                   : animation->now_clip + 1;
-        animation->prev_tick = SDL_GetTicks64();
+        animation->dt = 0;
     }
     SDL_FRect dstrect = {
         x, y, animation->clip[animation->now_clip].area.w * scale,

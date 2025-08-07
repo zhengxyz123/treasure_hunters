@@ -32,6 +32,7 @@
 #include "../resources/assets.h"
 #include "../resources/loader.h"
 #include "../setting.h"
+#include "frametimer.h"
 #include "text.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -42,8 +43,8 @@ extern Setting global_setting;
 WidgetRectList widget_list = {.size = 16, .aabb = {0, 0, 0, 0}, .data = NULL};
 int mouse_in_rect = 0;
 int should_update_widgets = 1;
-unsigned long cooldown_time = 0;
-unsigned long slider_cooldown_time = 0;
+float cooldown_time = 0;
+float slider_cooldown_time = 0;
 
 SDL_FPoint mouse_pos = {0, 0};
 SDL_FPoint mouse_clicked_pos = {0, 0};
@@ -83,18 +84,17 @@ TextStyle disabled_text_style = {
     .shadow_color = {42, 42, 42, 255}
 };
 
-void InitWidgetSystem() {
+void InitWidgets() {
     widget_list.data = (SDL_FRect*)calloc(widget_list.size, sizeof(SDL_FRect));
-    button_texture = LoadTexture(
-        yellow_button_png_content, sizeof(yellow_button_png_content)
-    );
+    button_texture =
+        LoadTexture(yellow_panel_png_content, sizeof(yellow_panel_png_content));
     slider_texture =
         LoadTexture(slider_png_content, sizeof(slider_png_content));
     click_sound = LoadSound(click_ogg_content, sizeof(click_ogg_content));
     switch_sound = LoadSound(switch_ogg_content, sizeof(switch_ogg_content));
 }
 
-void QuitWidgetSystem() {
+void QuitWidgets() {
     free(widget_list.data);
     SDL_DestroyTexture(button_texture);
     SDL_DestroyTexture(slider_texture);
@@ -199,37 +199,41 @@ void HandleWidgetEvent(SDL_Event* event) {
             }
             break;
     }
-    if (global_app.joystick.available) {
-        int dir = 0;
-        int down = SDL_GameControllerGetAxis(
-                       global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
-                   ) > 16384;
-        down = down ||
-               SDL_GameControllerGetButton(
-                   global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_DOWN
-               );
-        int up = SDL_GameControllerGetAxis(
-                     global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
-                 ) < -16384;
-        up = up || SDL_GameControllerGetButton(
-                       global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_UP
-                   );
-        if (down && SDL_GetTicks64() > cooldown_time) {
-            dir = 1;
-            cooldown_time = SDL_GetTicks64() + 5 * TICK;
-        } else if (up && SDL_GetTicks64() > cooldown_time) {
-            dir = -1;
-            cooldown_time = SDL_GetTicks64() + 5 * TICK;
-        }
-        size_t now =
-            SDL_clamp((long)widget_list.now + dir, 0, widget_list.len - 1);
-        if (widget_list.now != now) {
-            Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
-        }
-        widget_list.now = now;
-        SDL_FRect rect = widget_list.data[widget_list.now];
-        mouse_pos = (SDL_FPoint){rect.x + rect.w / 2, rect.y + rect.h / 2};
+}
+
+void TickWidgets(float dt) {
+    if (!global_app.joystick.available) {
+        return;
     }
+    int dir = 0;
+    int down = SDL_GameControllerGetAxis(
+                   global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
+               ) > 16384;
+    down =
+        down || SDL_GameControllerGetButton(
+                    global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_DOWN
+                );
+    int up = SDL_GameControllerGetAxis(
+                 global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
+             ) < -16384;
+    up = up || SDL_GameControllerGetButton(
+                   global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_UP
+               );
+    cooldown_time -= dt;
+    if (down && cooldown_time < 0) {
+        dir = 1;
+        cooldown_time = 0.12;
+    } else if (up && cooldown_time < 0) {
+        dir = -1;
+        cooldown_time = 0.12;
+    }
+    size_t now = SDL_clamp((long)widget_list.now + dir, 0, widget_list.len - 1);
+    if (widget_list.now != now) {
+        Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
+    }
+    widget_list.now = now;
+    SDL_FRect rect = widget_list.data[widget_list.now];
+    mouse_pos = (SDL_FPoint){rect.x + rect.w / 2, rect.y + rect.h / 2};
 }
 
 void WidgetBegin() {
@@ -352,22 +356,25 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
     }
     if (data->is_dragging && global_app.joystick.available) {
         int dir = 0;
-        int right =
-            SDL_GameControllerGetAxis(
-                global_app.joystick.device, SDL_CONTROLLER_AXIS_TRIGGERRIGHT
-            ) > 16384;
-        int left =
-            SDL_GameControllerGetAxis(
-                global_app.joystick.device, SDL_CONTROLLER_AXIS_TRIGGERLEFT
-            ) > 16384;
-        if (right && SDL_GetTicks64() > slider_cooldown_time) {
+        int right = SDL_GameControllerGetButton(
+            global_app.joystick.device, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER
+        );
+        int left = SDL_GameControllerGetButton(
+            global_app.joystick.device, SDL_CONTROLLER_BUTTON_LEFTSHOULDER
+        );
+        slider_cooldown_time -= frametimer_delta_time(global_app.timer);
+        if (right && slider_cooldown_time < 0) {
             dir = 1;
-            slider_cooldown_time = SDL_GetTicks64() + 10 * TICK;
-            Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
-        } else if (left && SDL_GetTicks64() > slider_cooldown_time) {
+            slider_cooldown_time = 0.15;
+            if (data->now + dir < data->max) {
+                Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
+            }
+        } else if (left && slider_cooldown_time < 0) {
             dir = -1;
-            slider_cooldown_time = SDL_GetTicks64() + 10 * TICK;
-            Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
+            slider_cooldown_time = 0.15;
+            if (data->now + dir > data->min) {
+                Mix_PlayChannel(SFX_CHANNEL, switch_sound, 0);
+            }
         }
         data->now = data->now + dir * (data->max - data->min) * 0.1;
         data->now = SDL_min(data->max, SDL_max(data->min, data->now));

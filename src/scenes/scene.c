@@ -145,8 +145,8 @@ void HandleSceneEvent(SDL_Event* event) {
     }
 }
 
-void TickScene() {
-    scene_array[now_scene]->tick();
+void TickScene(float dt) {
+    scene_array[now_scene]->tick(dt);
 }
 
 void FreeSceneManager() {

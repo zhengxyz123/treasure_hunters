@@ -40,11 +40,12 @@ typedef struct {
     float now;
 } SliderData;
 
-void InitWidgetSystem();
-void QuitWidgetSystem();
+void InitWidgets();
+void QuitWidgets();
 int GetCurrentWidget();
 void ClearWidgets();
 void HandleWidgetEvent(SDL_Event* event);
+void TickWidgets(float dt);
 void WidgetBegin();
 void CalcButtonTextSize(char* str, float* w, float* h);
 int WidgetButton(float x, float y, char* str, int disabled);

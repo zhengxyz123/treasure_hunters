@@ -22,6 +22,7 @@
 
 #include "sprite.h"
 #include "../global.h"
+#include "frametimer.h"
 
 extern GameApp global_app;
 
@@ -82,16 +83,17 @@ void DrawSprite(Sprite* sprite) {
         );
         SDL_SetTextureAlphaMod(animation->texture, sprite->color.a);
         if (animation->paused) {
-            animation->prev_tick = SDL_GetTicks64();
-            return;
+            animation->dt = 0;
+            goto draw;
         }
-        if (SDL_GetTicks() - animation->prev_tick >
-            animation->clip[animation->now_clip].duration) {
+        animation->dt += frametimer_delta_time(global_app.timer);
+        if (animation->dt > animation->clip[animation->now_clip].duration) {
             animation->now_clip = animation->now_clip + 1 > animation->count - 1
                                       ? 0
                                       : animation->now_clip + 1;
-            animation->prev_tick = SDL_GetTicks64();
+            animation->dt = 0;
         }
+    draw:
         SDL_RenderCopyExF(
             global_app.renderer, animation->texture,
             &animation->clip[animation->now_clip].area, &sprite->area,

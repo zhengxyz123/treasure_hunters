@@ -47,7 +47,7 @@ typedef struct {
 extern Scene setting_scene;
 
 void SettingSceneInit();
-void SettingSceneTick();
+void SettingSceneTick(float dt);
 void SettingSceneFree();
 void SettingSceneOnKeyDown(SDL_KeyCode key);
 void SettingSceneOnControllerButtonDown(int button);

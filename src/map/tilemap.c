@@ -20,54 +20,24 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_GLOBAL_H_
-#define _TH_GLOBAL_H_
+#include "tilemap.h"
+#include <stdlib.h>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__MINGW32__)
-    #include <SDL.h>
-    #include <SDL_image.h>
-    #include <SDL_mixer.h>
-#else
-    #include <SDL2/SDL.h>
-    #include <SDL2/SDL_image.h>
-    #include <SDL2/SDL_mixer.h>
-#endif
+extern GameApp global_app;
 
-#if defined(__LINUX__)
-    #define PATH_SEP '/'
-    #include <linux/limits.h>
-#elif defined(__WIN32__)
-    #define PATH_SEP '\\'
-    #include <windef.h>
-    #define PATH_MAX MAX_PATH
-#endif
+TileMap* LoadTileMap(const unsigned char* content, size_t size) {
+    TileMap* map = calloc(1, sizeof(TileMap));
+    map->map = cute_tiled_load_map_from_memory(content, size, NULL);
+    map->texture = SDL_CreateTexture(
+        global_app.renderer, SDL_PIXELFORMAT_RGBA4444,
+        SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, 512, 512
+    );
+    SDL_SetRenderTarget(global_app.renderer, map->texture);
+    SDL_SetRenderTarget(global_app.renderer, NULL);
+    return map;
+}
 
-#include "frametimer.h"
-
-#define MUSIC_CHANNEL 0
-#define SFX_CHANNEL 1
-
-typedef enum {
-    GAMESTATUS_NORMAL,
-    GAMESTATUS_KEY_BINDING,
-} GameStatus;
-
-typedef struct {
-    int argc;
-    char** argv;
-    char* exec_path;
-    int should_quit;
-    float interface_size;
-    frametimer_t* timer;
-    GameStatus status;
-    struct {
-        SDL_GameController* device;
-        int available;
-        int which;
-    } joystick;
-    SDL_Window* window;
-    int window_focused;
-    SDL_Renderer* renderer;
-} GameApp;
-
-#endif
+void FreeTileMap(TileMap* map) {
+    cute_tiled_free_map(map->map);
+    SDL_DestroyTexture(map->texture);
+}

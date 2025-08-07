@@ -26,21 +26,22 @@
 #include "../global.h"
 
 typedef struct {
-    int duration;
+    float duration;
     SDL_Rect area;
 } AnimationClip;
 
 typedef struct {
     int count;
     int paused;
-    unsigned long prev_tick;
-    unsigned long now_clip;
+    int now_clip;
+    float dt;
     SDL_Texture* texture;
     AnimationClip* clip;
 } Animation;
 
-Animation*
-CreateAnimation(SDL_Texture* texture, int duration, SDL_Rect* rect, int count);
+Animation* CreateAnimation(
+    SDL_Texture* texture, float duration, SDL_Rect* rect, int count
+);
 void DrawAnimationEx(
     Animation* animation, float x, float y, float scale, double angle,
     SDL_FPoint* center, SDL_RendererFlip flip

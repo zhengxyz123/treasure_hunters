@@ -45,3 +45,16 @@ cmake -B build/
 ```
 
 It will generate a `treasure_hunters.sln` under `build/` directory.
+
+### PSP
+**PSP support is currently experimental now!**
+
+First, you should [install PSP SDK](https://pspdev.github.io/installation.html).
+
+Then, run:
+
+```bash
+psp-cmake -B build -D CMAKE_BUILD_TYPE="Release"
+cd build /
+make
+```

@@ -29,7 +29,7 @@
 extern Scene start_scene;
 
 void StartSceneInit();
-void StartSceneTick();
+void StartSceneTick(float dt);
 void StartSceneFree();
 
 #endif

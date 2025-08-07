@@ -27,7 +27,11 @@ typedef struct {
     int fullscreen;
     int music_volume;
     int sfx_volume;
+#if defined(__PSP__)
+    int mute_all;
+#else
     int mute_when_unfocused;
+#endif
 } Setting;
 
 void InitSetting();

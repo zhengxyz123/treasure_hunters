@@ -26,7 +26,7 @@
 #include "../global.h"
 
 void InitSubscene();
-void DrawBackground();
+void DrawBackground(float dt);
 void FreeSubscene();
 
 #endif

@@ -37,6 +37,7 @@ extern GameApp global_app;
 extern Setting global_setting;
 
 void InitSetting() {
+#if !defined(__PSP__)
     char* setting_file = (char*)calloc(PATH_MAX, sizeof(char));
     strcpy(setting_file, global_app.exec_path);
     strcat(setting_file, "settings.json");
@@ -47,19 +48,14 @@ void InitSetting() {
     if (fp == NULL) {
         return;
     }
-    size_t len = 128, now = 0;
-    char* setting_content = (char*)calloc(len, sizeof(char));
-    char ch;
-    while ((ch = fgetc(fp)) != EOF) {
-        setting_content[now++] = ch;
-        if (now == len) {
-            len *= 2;
-            setting_content =
-                (char*)realloc(setting_content, len * sizeof(char));
-        }
-    }
+    fseek(fp, 0, SEEK_END);
+    long fsize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    char* data = calloc(fsize + 1, sizeof(char));
+    fread(data, fsize, 1, fp);
+    data[fsize] = '\0';
     fclose(fp);
-    cJSON* setting_json = cJSON_Parse(setting_content);
+    cJSON* setting_json = cJSON_Parse(data);
     cJSON* object = NULL;
     if (setting_json == NULL) {
         return;
@@ -85,11 +81,13 @@ void InitSetting() {
             global_setting.mute_when_unfocused = object->valueint;
         }
     }
-    free(setting_content);
+    free(data);
     free(setting_file);
+#endif
 }
 
 void SaveSetting() {
+#if !defined(__PSP__)
     char* setting_file = (char*)calloc(PATH_MAX, sizeof(char));
     strcpy(setting_file, global_app.exec_path);
     strcat(setting_file, "settings.json");
@@ -122,4 +120,5 @@ void SaveSetting() {
     fclose(fp);
     free(json_string);
     free(setting_file);
+#endif
 }

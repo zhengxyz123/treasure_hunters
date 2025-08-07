@@ -49,7 +49,7 @@ TextStyle default_small_text_style = {
     .shadow_color = {255, 255, 255, 255}
 };
 
-void InitTextSystem() {
+void InitText() {
     big_text_texture =
         LoadTexture(big_text_png_content, sizeof(big_text_png_content));
     small_text_texture =
@@ -58,7 +58,7 @@ void InitTextSystem() {
         LoadTexture(input_prompt_png_content, sizeof(input_prompt_png_content));
 }
 
-void QuitTextSystem() {
+void QuitText() {
     SDL_DestroyTexture(big_text_texture);
     SDL_DestroyTexture(small_text_texture);
     SDL_DestroyTexture(input_prompt_texture);
@@ -108,7 +108,7 @@ void DrawBigText(float x, float y, TextStyle* style, const char* format, ...) {
     va_list args;
     va_start(args, format);
     char* str;
-#if defined(__GNUC__) && !defined(__MINGW32__)
+#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__)
     vasprintf(&str, format, args);
 #else
     str = (char*)calloc(1024, sizeof(char));
@@ -227,7 +227,7 @@ void DrawSmallText(
     va_list args;
     va_start(args, format);
     char* str;
-#if defined(__GNUC__) && !defined(__MINGW32__)
+#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__)
     vasprintf(&str, format, args);
 #else
     str = (char*)calloc(1024, sizeof(char));
@@ -311,7 +311,21 @@ void DrawSmallText(
                 );
             } else if (arg0 == 1) {
                 // draw joystick icons
-                SDL_Rect icon_src = {16 * arg1, 16 * 0, 16, 16};
+                int controller_type = 0;
+#if defined(__PSP__)
+                controller_type = 1;
+#else
+                switch (SDL_GameControllerGetType(global_app.joystick.device)) {
+                    case SDL_CONTROLLER_TYPE_XBOX360:
+                    case SDL_CONTROLLER_TYPE_XBOXONE:
+                        controller_type = 0;
+                        break;
+                    default:
+                        controller_type = 0;
+                        break;
+                }
+#endif
+                SDL_Rect icon_src = {16 * arg1, 16 * controller_type, 16, 16};
                 SDL_FRect icon_dst = text_dst;
                 if (style->has_shadow) {
                     icon_dst.w += style->shadow_offset.x * style->size;

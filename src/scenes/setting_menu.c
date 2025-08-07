@@ -41,15 +41,22 @@ SliderData music_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
 SliderData sfx_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
 int mute_data = 0;
 SettingItem settings_array[] = {
+#if !defined(__PSP__)
     {SETTING_TYPE_SUBTITLE, "Display"},
     {SETTING_TYPE_OPTION, "Fullscreen", {.option = &fullscreen_data}},
+#endif
     {SETTING_TYPE_SUBTITLE, "Sound"},
     {SETTING_TYPE_SLIDER, "Music volume", {.slider = &music_volume_data}},
     {SETTING_TYPE_SLIDER, "SFX volume", {.slider = &sfx_volume_data}},
+#if defined(__PSP__)
+    {SETTING_TYPE_OPTION, "Mute all", {.option = &mute_data}},
+#else
     {SETTING_TYPE_OPTION, "Mute when\nlost focus", {.option = &mute_data}},
+#endif
     {SETTING_TYPE_SUBTITLE, " "},
-    {SETTING_TYPE_BUTTON, "Reset settings", {.button = 0}},
-    {SETTING_TYPE_BUTTON, "Back", {.button = 1}}
+    {SETTING_TYPE_BUTTON, "Bind keys", {.button = 0}},
+    {SETTING_TYPE_BUTTON, "Reset settings", {.button = 1}},
+    {SETTING_TYPE_BUTTON, "Back", {.button = 2}}
 };
 TextStyle subtitle_text_style = {
     .size = 1.0,
@@ -69,7 +76,11 @@ TextStyle item_text_style_active = {
     .anchor = TEXT_ANCHOR_X_RIGHT | TEXT_ANCHOR_Y_TOP
 };
 TextStyle hint_style = {
+#if defined(__PSP__)
+    .size = 1.4,
+#else
     .size = 1.0,
+#endif
     .color = {0, 0, 0, 255},
     .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_BOTTOM
 };
@@ -78,10 +89,14 @@ void SettingSceneInit() {
     fullscreen_data = global_setting.fullscreen;
     music_volume_data.now = global_setting.music_volume;
     sfx_volume_data.now = global_setting.sfx_volume;
+#if defined(__PSP__)
+    mute_data = global_setting.mute_all;
+#else
     mute_data = global_setting.mute_when_unfocused;
+#endif
 }
 
-void SettingSceneTick() {
+void SettingSceneTick(float dt) {
     int win_w, win_h;
     SDL_GetWindowSize(global_app.window, &win_w, &win_h);
     float items_h_coeff =
@@ -91,6 +106,9 @@ void SettingSceneTick() {
     CalcSmallTextSize(
         settings_array[3].name, &item_text_style_normal, &max_text_w, NULL
     );
+#if defined(__PSP__)
+    global_app.interface_size = 1.4;
+#else
     global_app.interface_size =
         0.75 * win_h / items_h_coeff / SMALL_TEXT_HEIGHT;
     if (win_w / 2.0 - 20 - global_app.interface_size * max_text_w < 0) {
@@ -99,15 +117,21 @@ void SettingSceneTick() {
     if (global_app.interface_size < 1) {
         global_app.interface_size = 1;
     }
+#endif
     float slider_w = max_text_w * global_app.interface_size - 20;
+    if (slider_w < win_w / 2.0 - 80) {
+        slider_w = win_w / 2.0 - 80;
+    }
     float widget_y = ((float)win_h - items_h_coeff * global_app.interface_size *
                                          SMALL_TEXT_HEIGHT) /
                      2.0;
     subtitle_text_style.size = global_app.interface_size;
     item_text_style_normal.size = global_app.interface_size;
     item_text_style_active.size = global_app.interface_size;
+#if !defined(__PSP__)
     hint_style.size = global_app.interface_size / 1.2;
-    DrawBackground();
+#endif
+    DrawBackground(dt);
     WidgetBegin();
     int now_widget = 0;
     int button_clicked = -1;
@@ -187,23 +211,44 @@ void SettingSceneTick() {
     WidgetEnd();
     if (global_app.joystick.available) {
         DrawSmallText(
-            10, win_h - 5, &hint_style, "{1,13}{1,14}:Slider {1,1}:Back"
+            10, win_h - 5, &hint_style, "{1,15}{1,16}:Slider {1,1}:Back"
         );
     } else {
         DrawSmallText(10, win_h - 5, &hint_style, "ESC:Back");
     }
-    if (button_clicked == 0) {
+    if (button_clicked == 1) {
         fullscreen_data = 0;
         music_volume_data.now = 64.0;
         sfx_volume_data.now = 64.0;
+#if defined(__PSP__)
+        mute_data = 0;
+#else
         mute_data = 1;
-    } else if (button_clicked == 1) {
+#endif
+    } else if (button_clicked == 2) {
         BackToPrevScene();
     }
     if (global_setting.fullscreen != fullscreen_data) {
         SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
     }
     global_setting.fullscreen = fullscreen_data;
+#if defined(__PSP__)
+    if (global_setting.music_volume != (int)music_volume_data.now &&
+        !global_setting.mute_all) {
+        Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
+    }
+    global_setting.music_volume = (int)music_volume_data.now;
+    if (global_setting.sfx_volume != (int)sfx_volume_data.now &&
+        !global_setting.mute_all) {
+        Mix_Volume(SFX_CHANNEL, (int)sfx_volume_data.now);
+    }
+    global_setting.sfx_volume = (int)sfx_volume_data.now;
+    if (global_setting.mute_all != mute_data) {
+        Mix_Volume(MUSIC_CHANNEL, mute_data ? 0 : global_setting.music_volume);
+        Mix_Volume(SFX_CHANNEL, mute_data ? 0 : global_setting.sfx_volume);
+    }
+    global_setting.mute_all = mute_data;
+#else
     if (global_setting.music_volume != (int)music_volume_data.now &&
         global_app.window_focused) {
         Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
@@ -215,6 +260,7 @@ void SettingSceneTick() {
     }
     global_setting.sfx_volume = (int)sfx_volume_data.now;
     global_setting.mute_when_unfocused = mute_data;
+#endif
 }
 
 void SettingSceneFree() {}

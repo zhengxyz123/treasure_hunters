@@ -43,16 +43,24 @@ TextStyle title_text_style = {
 
 void StartSceneInit() {}
 
-void StartSceneTick() {
+void StartSceneTick(float dt) {
     int win_w, win_h;
     SDL_GetWindowSize(global_app.window, &win_w, &win_h);
+#if defined(__PSP__)
+    global_app.interface_size = 2.0;
+#else
     global_app.interface_size = 0.25 * win_h / (4 * 1.5 * SMALL_TEXT_HEIGHT);
     if (global_app.interface_size < 2.0) {
         global_app.interface_size = 2.0;
     }
-    DrawBackground();
+#endif
+    DrawBackground(dt);
+#if defined(__PSP__)
+    title_text_style.size = 2;
+#else
     title_text_style.size =
         0.11 * win_h / 15 * 96 > win_w ? win_w / 98.0 : 0.11 * win_h / 15;
+#endif
     DrawBigText(
         win_w / 2.0, 0.2 * win_h, &title_text_style, "TREASURE\nHUNTERS"
     );

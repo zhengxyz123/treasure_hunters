@@ -67,27 +67,25 @@ void InitSubscene() {
         water_reflect_big_png_content, sizeof(water_reflect_big_png_content)
     );
     water_reflect_big_animation = CreateAnimation(
-        water_reflect_big_texture, 10 * TICK, water_reflect_big_animation_clip,
-        4
+        water_reflect_big_texture, 0.1, water_reflect_big_animation_clip, 4
     );
     water_reflect_medium_texture = LoadTexture(
         water_reflect_medium_png_content,
         sizeof(water_reflect_medium_png_content)
     );
     water_reflect_medium_animation = CreateAnimation(
-        water_reflect_medium_texture, 10 * TICK,
-        water_reflect_medium_animation_clip, 4
+        water_reflect_medium_texture, 0.1, water_reflect_medium_animation_clip,
+        4
     );
     water_reflect_small_texture = LoadTexture(
         water_reflect_small_png_content, sizeof(water_reflect_small_png_content)
     );
     water_reflect_small_animation = CreateAnimation(
-        water_reflect_small_texture, 10 * TICK,
-        water_reflect_small_animation_clip, 4
+        water_reflect_small_texture, 0.1, water_reflect_small_animation_clip, 4
     );
 }
 
-void DrawBackground() {
+void DrawBackground(float dt) {
     int win_w, win_h, img_w, img_h;
     SDL_GetWindowSize(global_app.window, &win_w, &win_h);
     SDL_RenderCopyF(global_app.renderer, background_texture, NULL, NULL);
@@ -96,7 +94,7 @@ void DrawBackground() {
         small_cloud_texture[small_cloud_index], NULL, NULL, &img_w, &img_h
     );
     float small_cloud_scale = 0.31 * win_h / (img_h + 1);
-    small_cloud_x += 2;
+    small_cloud_x += 120 * dt;
     SDL_FRect small_cloud_dst = {
         small_cloud_x, 0.31 * win_h - img_h * small_cloud_scale,
         img_w * small_cloud_scale, img_h * small_cloud_scale
@@ -115,7 +113,7 @@ void DrawBackground() {
     // Draw big cloud
     SDL_QueryTexture(big_cloud_texture, NULL, NULL, &img_w, &img_h);
     float big_cloud_scale = 0.67 * win_h / (img_h + 1);
-    big_cloud_x += 0.5;
+    big_cloud_x += 30 * dt;
     while (big_cloud_x > -img_w * big_cloud_scale) {
         big_cloud_x -= img_w * big_cloud_scale;
     }

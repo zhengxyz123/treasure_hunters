@@ -37,7 +37,7 @@ typedef struct {
     int mouse_x;
     int mouse_y;
     void (*init)(void);
-    void (*tick)(void);
+    void (*tick)(float dt);
     void (*free)(void);
     void (*on_window_resize)(int, int);
     void (*on_key_down)(SDL_KeyCode);
@@ -57,7 +57,7 @@ void InitSceneManager();
 void SwitchScene(SceneID scene_id);
 void BackToPrevScene();
 void HandleSceneEvent(SDL_Event* event);
-void TickScene();
+void TickScene(float dt);
 void FreeScene(Scene* scene);
 void FreeSceneManager();
 

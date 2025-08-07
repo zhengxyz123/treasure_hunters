@@ -20,54 +20,18 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_GLOBAL_H_
-#define _TH_GLOBAL_H_
+#ifndef _TH_TILEMAP_H_
+#define _TH_TILEMAP_H_
 
-#if defined(WIN32) || defined(_WIN32) || defined(__MINGW32__)
-    #include <SDL.h>
-    #include <SDL_image.h>
-    #include <SDL_mixer.h>
-#else
-    #include <SDL2/SDL.h>
-    #include <SDL2/SDL_image.h>
-    #include <SDL2/SDL_mixer.h>
-#endif
-
-#if defined(__LINUX__)
-    #define PATH_SEP '/'
-    #include <linux/limits.h>
-#elif defined(__WIN32__)
-    #define PATH_SEP '\\'
-    #include <windef.h>
-    #define PATH_MAX MAX_PATH
-#endif
-
-#include "frametimer.h"
-
-#define MUSIC_CHANNEL 0
-#define SFX_CHANNEL 1
-
-typedef enum {
-    GAMESTATUS_NORMAL,
-    GAMESTATUS_KEY_BINDING,
-} GameStatus;
+#include "../global.h"
+#include <cute_tiled.h>
 
 typedef struct {
-    int argc;
-    char** argv;
-    char* exec_path;
-    int should_quit;
-    float interface_size;
-    frametimer_t* timer;
-    GameStatus status;
-    struct {
-        SDL_GameController* device;
-        int available;
-        int which;
-    } joystick;
-    SDL_Window* window;
-    int window_focused;
-    SDL_Renderer* renderer;
-} GameApp;
+    cute_tiled_map_t* map;
+    SDL_Texture* texture;
+} TileMap;
+
+TileMap* LoadTileMap(const unsigned char* content, size_t size);
+void FreeTileMap(TileMap* map);
 
 #endif
