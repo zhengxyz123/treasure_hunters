@@ -23,6 +23,7 @@
 #include "scene.h"
 #include "../global.h"
 #include "../ui/widget.h"
+#include "background.h"
 #include <assert.h>
 
 extern GameApp global_app;
@@ -35,7 +36,8 @@ struct {
     int top;
 } scene_stack;
 
-void InitSceneManager() {
+void InitSceneSystem() {
+    InitBackground();
     scene_array[now_scene]->init();
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
@@ -43,6 +45,11 @@ void InitSceneManager() {
     scene_array[now_scene]->mouse_y = mouse_y;
     scene_stack.top = 0;
     scene_stack.data[scene_stack.top] = now_scene;
+}
+
+void QuitSceneSystem() {
+    scene_array[now_scene]->free();
+    QuitBackground();
 }
 
 void SwitchScene(SceneID scene_id) {
@@ -71,84 +78,79 @@ void HandleSceneEvent(SDL_Event* event) {
         scene_array[now_scene]->mouse_y = mouse_y;
     }
     switch (event->type) {
-        case SDL_WINDOWEVENT:
-            if (scene_array[now_scene]->on_window_resize != NULL) {
-                if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
-                    scene_array[now_scene]->on_window_resize(
-                        event->window.data1, event->window.data2
-                    );
-                }
-            }
-            break;
-        case SDL_KEYDOWN:
-            if (scene_array[now_scene]->on_key_down != NULL) {
-                scene_array[now_scene]->on_key_down(event->key.keysym.sym);
-            }
-            break;
-        case SDL_KEYUP:
-            if (scene_array[now_scene]->on_key_up != NULL) {
-                scene_array[now_scene]->on_key_up(event->key.keysym.sym);
-            }
-            break;
-        case SDL_MOUSEMOTION:
-            scene_array[now_scene]->mouse_x = event->motion.x;
-            scene_array[now_scene]->mouse_y = event->motion.y;
-            if (scene_array[now_scene]->on_mouse_motion != NULL) {
-                scene_array[now_scene]->on_mouse_motion(
-                    event->motion.x, event->motion.y, event->motion.xrel,
-                    event->motion.yrel
+    case SDL_WINDOWEVENT:
+        if (scene_array[now_scene]->on_window_resize != NULL) {
+            if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
+                scene_array[now_scene]->on_window_resize(
+                    event->window.data1, event->window.data2
                 );
             }
-            break;
-        case SDL_MOUSEBUTTONDOWN:
-            if (scene_array[now_scene]->on_mouse_down != NULL) {
-                scene_array[now_scene]->on_mouse_down(
-                    event->button.x, event->button.y, event->button.button,
-                    event->button.clicks
-                );
-            }
-            break;
-        case SDL_MOUSEBUTTONUP:
-            if (scene_array[now_scene]->on_mouse_up != NULL) {
-                scene_array[now_scene]->on_mouse_up(
-                    event->button.x, event->button.y, event->button.button,
-                    event->button.clicks
-                );
-            }
-            break;
-        case SDL_MOUSEWHEEL:
-            if (scene_array[now_scene]->on_mouse_scroll != NULL) {
-                scene_array[now_scene]->on_mouse_scroll(
-                    scene_array[now_scene]->mouse_x,
-                    scene_array[now_scene]->mouse_y, event->wheel.x,
-                    event->wheel.y
-                );
-            }
-            break;
-        case SDL_CONTROLLERAXISMOTION:
-            if (scene_array[now_scene]->on_caxis_motion != NULL) {
-                scene_array[now_scene]->on_caxis_motion(
-                    event->caxis.axis, event->caxis.value
-                );
-            }
-            break;
-        case SDL_CONTROLLERBUTTONDOWN:
-            if (scene_array[now_scene]->on_cbutton_down != NULL) {
-                scene_array[now_scene]->on_cbutton_down(event->cbutton.button);
-            }
-            break;
-        case SDL_CONTROLLERBUTTONUP:
-            if (scene_array[now_scene]->on_cbutton_up != NULL) {
-                scene_array[now_scene]->on_cbutton_up(event->cbutton.button);
-            }
-            break;
+        }
+        break;
+    case SDL_KEYDOWN:
+        if (scene_array[now_scene]->on_key_down != NULL) {
+            scene_array[now_scene]->on_key_down(event->key.keysym.sym);
+        }
+        break;
+    case SDL_KEYUP:
+        if (scene_array[now_scene]->on_key_up != NULL) {
+            scene_array[now_scene]->on_key_up(event->key.keysym.sym);
+        }
+        break;
+    case SDL_MOUSEMOTION:
+        scene_array[now_scene]->mouse_x = event->motion.x;
+        scene_array[now_scene]->mouse_y = event->motion.y;
+        if (scene_array[now_scene]->on_mouse_motion != NULL) {
+            scene_array[now_scene]->on_mouse_motion(
+                event->motion.x, event->motion.y, event->motion.xrel,
+                event->motion.yrel
+            );
+        }
+        break;
+    case SDL_MOUSEBUTTONDOWN:
+        if (scene_array[now_scene]->on_mouse_down != NULL) {
+            scene_array[now_scene]->on_mouse_down(
+                event->button.x, event->button.y, event->button.button,
+                event->button.clicks
+            );
+        }
+        break;
+    case SDL_MOUSEBUTTONUP:
+        if (scene_array[now_scene]->on_mouse_up != NULL) {
+            scene_array[now_scene]->on_mouse_up(
+                event->button.x, event->button.y, event->button.button,
+                event->button.clicks
+            );
+        }
+        break;
+    case SDL_MOUSEWHEEL:
+        if (scene_array[now_scene]->on_mouse_scroll != NULL) {
+            scene_array[now_scene]->on_mouse_scroll(
+                scene_array[now_scene]->mouse_x,
+                scene_array[now_scene]->mouse_y, event->wheel.x, event->wheel.y
+            );
+        }
+        break;
+    case SDL_CONTROLLERAXISMOTION:
+        if (scene_array[now_scene]->on_caxis_motion != NULL) {
+            scene_array[now_scene]->on_caxis_motion(
+                event->caxis.axis, event->caxis.value
+            );
+        }
+        break;
+    case SDL_CONTROLLERBUTTONDOWN:
+        if (scene_array[now_scene]->on_cbutton_down != NULL) {
+            scene_array[now_scene]->on_cbutton_down(event->cbutton.button);
+        }
+        break;
+    case SDL_CONTROLLERBUTTONUP:
+        if (scene_array[now_scene]->on_cbutton_up != NULL) {
+            scene_array[now_scene]->on_cbutton_up(event->cbutton.button);
+        }
+        break;
     }
 }
 
 void TickScene(float dt) {
     scene_array[now_scene]->tick(dt);
-}
-
-void FreeSceneManager() {
-    scene_array[now_scene]->free();
 }

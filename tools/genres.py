@@ -19,14 +19,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Binary resources writer.
+"""Binary resources generator.
 
 This Python script writes resource files such as images, sounds, etc. to a C array.
 
 Usually, resources directory is `resources/`, source file is `src/resources/assets.c`,
 header file is `src/resources/assets.h`.
+
+NOTE: This script has been kept for reference purposes, the game no longer uses this
+method for storing assets.
 """
 
+import argparse
 import json
 import os
 import subprocess
@@ -60,43 +64,53 @@ header_content = """\
 """
 
 
-def main(res_dir: Path, source: Path, header: Path) -> int:
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("res_dir", type=Path, help="resource directory")
+    parser.add_argument("source", type=Path, help="C source file")
+    parser.add_argument("header", type=Path, help="C header file")
+    args = parser.parse_args()
+
     if shutil.which("tiled") is None:
-        print("tiled must be installed")
-        return 1
-    if not res_dir.exists() or not res_dir.is_dir():
-        print(f"'{res_dir}' must be a directory")
-        return 1
-    if not source.is_file():
-        print(f"'{source}' must be a file")
-        return 1
-    if not header.is_file():
-        print(f"'{header}' must be a file")
-        return 1
-    if source.parent != header.parent:
-        print("source file and header file must be in the same directory")
-        return 1
+        raise RuntimeError("tiled must be installed")
+    should_use_xvfb = False
+    if sys.platform.startswith("linux") and "DISPLAY" not in os.environ:
+        if shutil.which("xvfb-run") is None:
+            raise RuntimeError("xvfb-run must be installed")
+        else:
+            should_use_xvfb = True
+
+    if not args.res_dir.exists() or not args.res_dir.is_dir():
+        raise RuntimeError(f"'{args.res_dir}' must be a directory")
+    if args.source.exists() and not args.source.is_file():
+        raise RuntimeError(f"'{args.source}' must be a file")
+    if args.header.exists() and not args.header.is_file():
+        raise RuntimeError(f"'{args.header}' must be a file")
+    if args.source.parent != args.header.parent:
+        raise RuntimeError("source file and header file must be in the same directory")
+
     source_content_line = []
     header_content_line = []
-    header_name = f"_TH_{header.name.upper().replace(".", "_")}_"
-    for root, _, files in res_dir.walk():
+    header_name = f"_TH_{args.header.name.upper().replace(".", "_")}_"
+    for root, _, files in args.res_dir.walk():
         for file in files:
             path = Path(root) / file
             var_name = path.name.replace(".", "_") + "_content"
             if path.suffix == ".tmx":
                 fd, json_map_path = tempfile.mkstemp()
                 os.close(fd)
-                subprocess.run(
-                    [
-                        str(shutil.which("tiled")),
-                        "--embed-tilesets",
-                        "--minimize",
-                        "--export-map",
-                        "json",
-                        path,
-                        json_map_path,
-                    ]
-                )
+                command = [
+                    str(shutil.which("tiled")),
+                    "--embed-tilesets",
+                    "--minimize",
+                    "--export-map",
+                    "json",
+                    path,
+                    json_map_path,
+                ]
+                if should_use_xvfb:
+                    command.insert(0, "xvfb-run")
+                subprocess.run(command)
                 json_map = json.load(Path(json_map_path).open())
                 for tileset in json_map["tilesets"]:
                     tileset["image"] = Path(tileset["image"]).name
@@ -117,7 +131,7 @@ def main(res_dir: Path, source: Path, header: Path) -> int:
             )
     c_source_content = (
         source_content.replace("{{info}}", prefix_info)
-        .replace("{{header}}", header.name)
+        .replace("{{header}}", args.header.name)
         .replace("{{content}}", "\n".join(source_content_line))
     )
     c_header_content = (
@@ -125,16 +139,15 @@ def main(res_dir: Path, source: Path, header: Path) -> int:
         .replace("{{header}}", header_name)
         .replace("{{content}}", "\n".join(header_content_line))
     )
-    source.write_text(c_source_content)
-    header.write_text(c_header_content)
+    args.source.write_text(c_source_content)
+    args.header.write_text(c_header_content)
     return 0
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print(
-            f"usage: {sys.argv[0]} [resources directory] [C source file] [C header file]"
-        )
-        exit(1)
-    else:
-        exit(main(*[Path(arg) for arg in sys.argv[1:]]))
+    try:
+        sys.exit(main())
+    except Exception as err:
+        sys.exit(err.args[0])
+    except KeyboardInterrupt:
+        sys.exit("interrupted by user")

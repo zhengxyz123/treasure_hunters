@@ -31,6 +31,8 @@ typedef struct {
     SDL_Texture* texture;
 } TileMap;
 
+void InitMapSystem();
+void QuitMapSystem();
 TileMap* LoadTileMap(const unsigned char* content, size_t size);
 void FreeTileMap(TileMap* map);
 

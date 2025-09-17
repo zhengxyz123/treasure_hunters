@@ -20,16 +20,10 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_LOADER_H_
-#define _TH_LOADER_H_
+#ifndef _TH_UI_H_
+#define _TH_UI_H_
 
-#include "../global.h"
-
-SDL_Surface* LoadSurfaceFromMem(void* content, size_t size);
-SDL_Surface* LoadSurface(char* filename);
-SDL_Texture* LoadTextureFromMem(void* content, size_t size);
-SDL_Texture* LoadTexture(char* filename);
-Mix_Chunk* LoadSoundFromMem(void* content, size_t size);
-Mix_Chunk* LoadSound(char* filename);
+void InitUISystem();
+void QuitUISystem();
 
 #endif

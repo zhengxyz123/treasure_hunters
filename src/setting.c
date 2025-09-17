@@ -25,7 +25,7 @@
 #include "global.h"
 #include <stdio.h>
 #include <string.h>
-#if defined(__LINUX__)
+#if defined(__LINUX__) || defined(__PSP__)
     #include <unistd.h>
 #elif defined(__WIN32__)
     #include <io.h>
@@ -37,7 +37,6 @@ extern GameApp global_app;
 extern Setting global_setting;
 
 void InitSetting() {
-#if !defined(__PSP__)
     char* setting_file = (char*)calloc(PATH_MAX, sizeof(char));
     strcpy(setting_file, global_app.exec_path);
     strcat(setting_file, "settings.json");
@@ -60,11 +59,13 @@ void InitSetting() {
     if (setting_json == NULL) {
         return;
     }
+#if !defined(__PSP__)
     if ((object = cJSON_GetObjectItem(setting_json, "fullscreen")) != NULL) {
         if (cJSON_IsBool(object)) {
             global_setting.fullscreen = object->valueint;
         }
     }
+#endif
     if ((object = cJSON_GetObjectItem(setting_json, "music_volume")) != NULL) {
         if (cJSON_IsNumber(object)) {
             global_setting.music_volume = object->valueint;
@@ -75,19 +76,25 @@ void InitSetting() {
             global_setting.sfx_volume = object->valueint;
         }
     }
+#if defined(__PSP__)
+    if ((object = cJSON_GetObjectItem(setting_json, "mute_all")) != NULL) {
+        if (cJSON_IsBool(object)) {
+            global_setting.mute_all = object->valueint;
+        }
+    }
+#else
     if ((object = cJSON_GetObjectItem(setting_json, "mute_when_unfocused")) !=
         NULL) {
         if (cJSON_IsBool(object)) {
             global_setting.mute_when_unfocused = object->valueint;
         }
     }
+#endif
     free(data);
     free(setting_file);
-#endif
 }
 
 void SaveSetting() {
-#if !defined(__PSP__)
     char* setting_file = (char*)calloc(PATH_MAX, sizeof(char));
     strcpy(setting_file, global_app.exec_path);
     strcat(setting_file, "settings.json");
@@ -96,18 +103,24 @@ void SaveSetting() {
         return;
     }
     cJSON* setting_json = cJSON_CreateObject();
+#if !defined(__PSP__)
     cJSON_AddBoolToObject(
         setting_json, "fullscreen", global_setting.fullscreen
     );
+#endif
     cJSON_AddNumberToObject(
         setting_json, "music_volume", global_setting.music_volume
     );
     cJSON_AddNumberToObject(
         setting_json, "sfx_volume", global_setting.sfx_volume
     );
+#if defined(__PSP__)
+    cJSON_AddBoolToObject(setting_json, "mute_all", global_setting.mute_all);
+#else
     cJSON_AddBoolToObject(
         setting_json, "mute_when_unfocused", global_setting.mute_when_unfocused
     );
+#endif
     size_t len = 128;
     char* json_string = (char*)calloc(len, sizeof(char));
     while (!cJSON_PrintPreallocated(setting_json, json_string, len, 0)) {
@@ -120,5 +133,4 @@ void SaveSetting() {
     fclose(fp);
     free(json_string);
     free(setting_file);
-#endif
 }

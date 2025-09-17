@@ -23,7 +23,7 @@
 #include "setting_menu.h"
 #include "../setting.h"
 #include "../ui/text.h"
-#include "subscene.h"
+#include "background.h"
 
 extern GameApp global_app;
 extern Setting global_setting;
@@ -86,7 +86,9 @@ TextStyle hint_style = {
 };
 
 void SettingSceneInit() {
+#if !defined(__PSP__)
     fullscreen_data = global_setting.fullscreen;
+#endif
     music_volume_data.now = global_setting.music_volume;
     sfx_volume_data.now = global_setting.sfx_volume;
 #if defined(__PSP__)
@@ -133,79 +135,74 @@ void SettingSceneTick(float dt) {
 #endif
     DrawBackground(dt);
     WidgetBegin();
-    int now_widget = 0;
     int button_clicked = -1;
     for (int i = 0; i < SDL_arraysize(settings_array); ++i) {
         float text_w, text_h;
         switch (settings_array[i].type) {
-            case SETTING_TYPE_BUTTON:
-                CalcButtonTextSize(settings_array[i].name, &text_w, &text_h);
-                if (WidgetButton(
-                        (win_w - text_w) / 2.0, widget_y,
-                        settings_array[i].name, 0
-                    )) {
-                    button_clicked = settings_array[i].data.button;
-                }
-                widget_y += text_h + global_app.interface_size *
-                                         SMALL_TEXT_HEIGHT * 1.25;
-                break;
-            case SETTING_TYPE_OPTION:
-                CalcSmallTextSize(
-                    settings_array[i].name, &item_text_style_normal, &text_w,
-                    &text_h
-                );
-                DrawSmallText(
-                    win_w / 2.0 - 10, widget_y,
-                    now_widget++ == GetCurrentWidget()
-                        ? &item_text_style_active
-                        : &item_text_style_normal,
-                    settings_array[i].name
-                );
-                WidgetOption(
-                    win_w / 2.0 + 10 + 4 * global_app.interface_size,
-                    widget_y + (text_h -
-                                global_app.interface_size * SMALL_TEXT_HEIGHT) /
-                                   2,
-                    settings_array[i].data.option
-                );
-                widget_y += text_h + global_app.interface_size *
-                                         SMALL_TEXT_HEIGHT * 1.25;
-                break;
-            case SETTING_TYPE_SLIDER:
-                CalcSmallTextSize(
-                    settings_array[i].name, &item_text_style_normal, &text_w,
-                    &text_h
-                );
-                DrawSmallText(
-                    win_w / 2.0 - 10, widget_y,
-                    now_widget++ == GetCurrentWidget()
-                        ? &item_text_style_active
-                        : &item_text_style_normal,
-                    settings_array[i].name
-                );
-                WidgetSlider(
-                    win_w / 2.0 + 10,
-                    widget_y + (text_h -
-                                global_app.interface_size * SMALL_TEXT_HEIGHT) /
-                                   2,
-                    slider_w, SMALL_TEXT_HEIGHT * global_app.interface_size,
-                    settings_array[i].data.slider
-                );
-                widget_y += text_h + global_app.interface_size *
-                                         SMALL_TEXT_HEIGHT * 1.25;
-                break;
-            case SETTING_TYPE_SUBTITLE:
-                CalcSmallTextSize(
-                    settings_array[i].name, &subtitle_text_style, &text_w,
-                    &text_h
-                );
-                DrawSmallText(
-                    win_w / 2.0, widget_y, &subtitle_text_style,
-                    settings_array[i].name
-                );
-                widget_y += text_h + global_app.interface_size *
-                                         SMALL_TEXT_HEIGHT * 1.25;
-                break;
+        case SETTING_TYPE_BUTTON:
+            CalcButtonTextSize(settings_array[i].name, &text_w, &text_h);
+            if (WidgetButton(
+                    (win_w - text_w) / 2.0, widget_y, settings_array[i].name, 0
+                )) {
+                button_clicked = settings_array[i].data.button;
+            }
+            widget_y +=
+                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+            break;
+        case SETTING_TYPE_OPTION:
+            CalcSmallTextSize(
+                settings_array[i].name, &item_text_style_normal, &text_w,
+                &text_h
+            );
+            WidgetOption(
+                win_w / 2.0 + 10 + 4 * global_app.interface_size,
+                widget_y +
+                    (text_h - global_app.interface_size * SMALL_TEXT_HEIGHT) /
+                        2,
+                settings_array[i].data.option
+            );
+            DrawSmallText(
+                win_w / 2.0 - 10, widget_y,
+                WidgetIsHovering() ? &item_text_style_active
+                                   : &item_text_style_normal,
+                settings_array[i].name
+            );
+            widget_y +=
+                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+            break;
+        case SETTING_TYPE_SLIDER:
+            CalcSmallTextSize(
+                settings_array[i].name, &item_text_style_normal, &text_w,
+                &text_h
+            );
+            WidgetSlider(
+                win_w / 2.0 + 10,
+                widget_y +
+                    (text_h - global_app.interface_size * SMALL_TEXT_HEIGHT) /
+                        2,
+                slider_w, SMALL_TEXT_HEIGHT * global_app.interface_size,
+                settings_array[i].data.slider
+            );
+            DrawSmallText(
+                win_w / 2.0 - 10, widget_y,
+                WidgetIsHovering() ? &item_text_style_active
+                                   : &item_text_style_normal,
+                settings_array[i].name
+            );
+            widget_y +=
+                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+            break;
+        case SETTING_TYPE_SUBTITLE:
+            CalcSmallTextSize(
+                settings_array[i].name, &subtitle_text_style, &text_w, &text_h
+            );
+            DrawSmallText(
+                win_w / 2.0, widget_y, &subtitle_text_style,
+                settings_array[i].name
+            );
+            widget_y +=
+                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+            break;
         }
     }
     WidgetEnd();
@@ -228,10 +225,6 @@ void SettingSceneTick(float dt) {
     } else if (button_clicked == 2) {
         BackToPrevScene();
     }
-    if (global_setting.fullscreen != fullscreen_data) {
-        SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
-    }
-    global_setting.fullscreen = fullscreen_data;
 #if defined(__PSP__)
     if (global_setting.music_volume != (int)music_volume_data.now &&
         !global_setting.mute_all) {
@@ -249,6 +242,10 @@ void SettingSceneTick(float dt) {
     }
     global_setting.mute_all = mute_data;
 #else
+    if (global_setting.fullscreen != fullscreen_data) {
+        SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
+    }
+    global_setting.fullscreen = fullscreen_data;
     if (global_setting.music_volume != (int)music_volume_data.now &&
         global_app.window_focused) {
         Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
@@ -267,11 +264,11 @@ void SettingSceneFree() {}
 
 void SettingSceneOnKeyDown(SDL_KeyCode key) {
     switch (key) {
-        case SDLK_ESCAPE:
-            BackToPrevScene();
-            break;
-        default:
-            break;
+    case SDLK_ESCAPE:
+        BackToPrevScene();
+        break;
+    default:
+        break;
     }
 }
 

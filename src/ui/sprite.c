@@ -89,8 +89,8 @@ void DrawSprite(Sprite* sprite) {
         animation->dt += frametimer_delta_time(global_app.timer);
         if (animation->dt > animation->clip[animation->now_clip].duration) {
             animation->now_clip = animation->now_clip + 1 > animation->count - 1
-                                      ? 0
-                                      : animation->now_clip + 1;
+                                    ? 0
+                                    : animation->now_clip + 1;
             animation->dt = 0;
         }
     draw:

@@ -20,14 +20,13 @@
   THE SOFTWARE.
 */
 
-#include "subscene.h"
-#include "../resources/assets.h"
+#include "background.h"
 #include "../resources/loader.h"
 #include "../ui/animation.h"
 
 extern GameApp global_app;
 
-// For DrawBackground()
+// for DrawBackground()
 SDL_Texture* background_texture = NULL;
 SDL_Texture* small_cloud_texture[3] = {NULL};
 float small_cloud_x = 20.0;
@@ -50,46 +49,51 @@ SDL_Rect water_reflect_small_animation_clip[] = {
 };
 Animation* water_reflect_small_animation = NULL;
 
-void InitSubscene() {
-    // For DrawBackground()
-    background_texture = LoadTexture(
-        background_sky_png_content, sizeof(background_sky_png_content)
-    );
-    small_cloud_texture[0] =
-        LoadTexture(small_cloud1_png_content, sizeof(small_cloud1_png_content));
-    small_cloud_texture[1] =
-        LoadTexture(small_cloud2_png_content, sizeof(small_cloud2_png_content));
-    small_cloud_texture[2] =
-        LoadTexture(small_cloud3_png_content, sizeof(small_cloud3_png_content));
-    big_cloud_texture =
-        LoadTexture(big_cloud_png_content, sizeof(big_cloud_png_content));
-    water_reflect_big_texture = LoadTexture(
-        water_reflect_big_png_content, sizeof(water_reflect_big_png_content)
-    );
+void InitBackground() {
+    // for DrawBackground()
+    background_texture = LoadTexture("images/background/background_sky.png");
+    small_cloud_texture[0] = LoadTexture("images/background/small_cloud1.png");
+    small_cloud_texture[1] = LoadTexture("images/background/small_cloud2.png");
+    small_cloud_texture[2] = LoadTexture("images/background/small_cloud3.png");
+    big_cloud_texture = LoadTexture("images/background/big_cloud.png");
+    water_reflect_big_texture =
+        LoadTexture("images/background/water_reflect_big.png");
     water_reflect_big_animation = CreateAnimation(
         water_reflect_big_texture, 0.1, water_reflect_big_animation_clip, 4
     );
-    water_reflect_medium_texture = LoadTexture(
-        water_reflect_medium_png_content,
-        sizeof(water_reflect_medium_png_content)
-    );
+    water_reflect_medium_texture =
+        LoadTexture("images/background/water_reflect_medium.png");
     water_reflect_medium_animation = CreateAnimation(
         water_reflect_medium_texture, 0.1, water_reflect_medium_animation_clip,
         4
     );
-    water_reflect_small_texture = LoadTexture(
-        water_reflect_small_png_content, sizeof(water_reflect_small_png_content)
-    );
+    water_reflect_small_texture =
+        LoadTexture("images/background/water_reflect_small.png");
     water_reflect_small_animation = CreateAnimation(
         water_reflect_small_texture, 0.1, water_reflect_small_animation_clip, 4
     );
+}
+
+void QuitBackground() {
+    // for DrawBackground()
+    SDL_DestroyTexture(background_texture);
+    for (int i = 0; i < SDL_arraysize(small_cloud_texture); ++i) {
+        SDL_DestroyTexture(small_cloud_texture[i]);
+    }
+    SDL_DestroyTexture(big_cloud_texture);
+    FreeAnimation(water_reflect_big_animation);
+    FreeAnimation(water_reflect_medium_animation);
+    FreeAnimation(water_reflect_small_animation);
+    SDL_DestroyTexture(water_reflect_big_texture);
+    SDL_DestroyTexture(water_reflect_medium_texture);
+    SDL_DestroyTexture(water_reflect_small_texture);
 }
 
 void DrawBackground(float dt) {
     int win_w, win_h, img_w, img_h;
     SDL_GetWindowSize(global_app.window, &win_w, &win_h);
     SDL_RenderCopyF(global_app.renderer, background_texture, NULL, NULL);
-    // Draw small clouds
+    // draw small clouds
     SDL_QueryTexture(
         small_cloud_texture[small_cloud_index], NULL, NULL, &img_w, &img_h
     );
@@ -110,7 +114,7 @@ void DrawBackground(float dt) {
         );
         small_cloud_x = -img_w * small_cloud_scale - rand() % 50 - 50;
     }
-    // Draw big cloud
+    // draw big cloud
     SDL_QueryTexture(big_cloud_texture, NULL, NULL, &img_w, &img_h);
     float big_cloud_scale = 0.67 * win_h / (img_h + 1);
     big_cloud_x += 30 * dt;
@@ -127,7 +131,7 @@ void DrawBackground(float dt) {
             global_app.renderer, big_cloud_texture, NULL, &big_cloud_dst
         );
     }
-    // Draw water reflects
+    // draw water reflects
     float anime_w[] = {
         water_reflect_big_animation_clip[0].w,
         water_reflect_medium_animation_clip[0].w,
@@ -150,19 +154,4 @@ void DrawBackground(float dt) {
         0.95 * win_w - anime_w[2] * water_reflect_scale, 0.69 * win_h,
         water_reflect_scale
     );
-}
-
-void FreeSubscene() {
-    // For DrawBackground()
-    SDL_DestroyTexture(background_texture);
-    for (int i = 0; i < SDL_arraysize(small_cloud_texture); ++i) {
-        SDL_DestroyTexture(small_cloud_texture[i]);
-    }
-    SDL_DestroyTexture(big_cloud_texture);
-    FreeAnimation(water_reflect_big_animation);
-    FreeAnimation(water_reflect_medium_animation);
-    FreeAnimation(water_reflect_small_animation);
-    SDL_DestroyTexture(water_reflect_big_texture);
-    SDL_DestroyTexture(water_reflect_medium_texture);
-    SDL_DestroyTexture(water_reflect_small_texture);
 }

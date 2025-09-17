@@ -20,13 +20,47 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SUBSCENE_H_
-#define _TH_SUBSCENE_H_
+#ifndef _TH_RESPACK_H_
+#define _TH_RESPACK_H_
 
-#include "../global.h"
+#include <stdint.h>
+#include <stdio.h>
 
-void InitSubscene();
-void DrawBackground(float dt);
-void FreeSubscene();
+#define FNV1_32_INIT ((uint32_t)0x811c9dc5)
+#define FNV1_32_PRIME ((uint32_t)0x01000193)
+
+// please note this alignment, it should have the same value as `_pack_` in
+// `tools/respack.py`
+#pragma pack(8)
+
+typedef struct {
+    char magic[4];
+    uint8_t version;
+    uint16_t entry_count;
+    uint64_t key_index_offset;
+    uint64_t value_index_offset;
+} RespackHeader;
+
+typedef struct {
+    uint64_t key_offset;
+    uint8_t key_length;
+    uint32_t key_hash;
+    uint64_t value_offset;
+    uint32_t value_length;
+} RespackEntry;
+
+#pragma pack()
+
+typedef struct {
+    FILE* fp;
+    RespackHeader header;
+    RespackEntry* entries;
+} Respack;
+
+uint32_t fnv1a_32(char* str, uint32_t hval);
+Respack* LoadRespack(char* filename);
+int RespackHasItem(Respack* rpkg, char* key, size_t* index);
+void* RespackGetItem(Respack* rpkg, char* key, size_t* length);
+void DestroyRespack(Respack* rpkg);
 
 #endif

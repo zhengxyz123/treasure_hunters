@@ -43,6 +43,7 @@
 #endif
 
 #include "frametimer.h"
+#include "resources/respack.h"
 
 #define MUSIC_CHANNEL 0
 #define SFX_CHANNEL 1
@@ -68,6 +69,7 @@ typedef struct {
     SDL_Window* window;
     int window_focused;
     SDL_Renderer* renderer;
+    Respack* assets_pack;
 } GameApp;
 
 #endif

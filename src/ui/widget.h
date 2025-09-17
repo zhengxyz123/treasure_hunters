@@ -26,27 +26,19 @@
 #include "../global.h"
 
 typedef struct {
-    size_t size;
-    size_t len;
-    size_t now;
-    SDL_FRect aabb;
-    SDL_FRect* data;
-} WidgetRectList;
-
-typedef struct {
     int is_dragging;
     float min;
     float max;
     float now;
 } SliderData;
 
-void InitWidgets();
-void QuitWidgets();
-int GetCurrentWidget();
+void InitWidget();
+void QuitWidget();
 void ClearWidgets();
 void HandleWidgetEvent(SDL_Event* event);
 void TickWidgets(float dt);
 void WidgetBegin();
+int WidgetIsHovering();
 void CalcButtonTextSize(char* str, float* w, float* h);
 int WidgetButton(float x, float y, char* str, int disabled);
 int WidgetOption(float x, float y, int* data);

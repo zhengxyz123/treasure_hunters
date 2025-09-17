@@ -21,13 +21,11 @@
 */
 
 #include "start_menu.h"
-#include "../setting.h"
 #include "../ui/text.h"
 #include "../ui/widget.h"
-#include "subscene.h"
+#include "background.h"
 
 extern GameApp global_app;
-extern Setting global_setting;
 
 Scene start_scene = {
     .init = StartSceneInit, .tick = StartSceneTick, .free = StartSceneFree

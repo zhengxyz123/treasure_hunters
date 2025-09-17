@@ -26,7 +26,6 @@
 
 #include "text.h"
 #include "../global.h"
-#include "../resources/assets.h"
 #include "../resources/loader.h"
 #include <assert.h>
 #include <stdio.h>
@@ -50,12 +49,9 @@ TextStyle default_small_text_style = {
 };
 
 void InitText() {
-    big_text_texture =
-        LoadTexture(big_text_png_content, sizeof(big_text_png_content));
-    small_text_texture =
-        LoadTexture(small_text_png_content, sizeof(small_text_png_content));
-    input_prompt_texture =
-        LoadTexture(input_prompt_png_content, sizeof(input_prompt_png_content));
+    big_text_texture = LoadTexture("images/ui/big_text.png");
+    small_text_texture = LoadTexture("images/ui/small_text.png");
+    input_prompt_texture = LoadTexture("images/ui/input_prompt.png");
 }
 
 void QuitText() {
@@ -65,7 +61,7 @@ void QuitText() {
 }
 
 void CalcBigTextSize(char* str, TextStyle* style, float* w, float* h) {
-    if (style == NULL) {
+    if (!style) {
         style = &default_big_text_style;
     }
     float line_w = 0;
@@ -85,10 +81,10 @@ void CalcBigTextSize(char* str, TextStyle* style, float* w, float* h) {
     if (line_w > w_temp) {
         w_temp = line_w;
     }
-    if (w != NULL) {
+    if (w) {
         *w = w_temp;
     }
-    if (h != NULL) {
+    if (h) {
         *h = h_temp;
     }
 }
@@ -102,7 +98,7 @@ float CalcBigTextWidthOneLine(char* str, TextStyle* style) {
 }
 
 void DrawBigText(float x, float y, TextStyle* style, const char* format, ...) {
-    if (style == NULL) {
+    if (!style) {
         style = &default_big_text_style;
     }
     va_list args;
@@ -171,7 +167,7 @@ void DrawBigText(float x, float y, TextStyle* style, const char* format, ...) {
 }
 
 void CalcSmallTextSize(char* str, TextStyle* style, float* w, float* h) {
-    if (style == NULL) {
+    if (!style) {
         style = &default_small_text_style;
     }
     float line_w = 0;
@@ -194,10 +190,10 @@ void CalcSmallTextSize(char* str, TextStyle* style, float* w, float* h) {
     if (line_w > w_temp) {
         w_temp = line_w;
     }
-    if (w != NULL) {
+    if (w) {
         *w = w_temp;
     }
-    if (h != NULL) {
+    if (h) {
         *h = h_temp;
     }
 }
@@ -218,7 +214,7 @@ float CalcSmallTextWidthOneLine(char* str, TextStyle* style) {
 void DrawSmallText(
     float x, float y, TextStyle* style, const char* format, ...
 ) {
-    if (style == NULL) {
+    if (!style) {
         style = &default_small_text_style;
     }
     SDL_SetTextureColorMod(
@@ -316,13 +312,13 @@ void DrawSmallText(
                 controller_type = 1;
 #else
                 switch (SDL_GameControllerGetType(global_app.joystick.device)) {
-                    case SDL_CONTROLLER_TYPE_XBOX360:
-                    case SDL_CONTROLLER_TYPE_XBOXONE:
-                        controller_type = 0;
-                        break;
-                    default:
-                        controller_type = 0;
-                        break;
+                case SDL_CONTROLLER_TYPE_XBOX360:
+                case SDL_CONTROLLER_TYPE_XBOXONE:
+                    controller_type = 0;
+                    break;
+                default:
+                    controller_type = 0;
+                    break;
                 }
 #endif
                 SDL_Rect icon_src = {16 * arg1, 16 * controller_type, 16, 16};

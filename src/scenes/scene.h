@@ -53,12 +53,12 @@ typedef struct {
 
 extern Scene* scene_array[MAX_SCENE];
 
-void InitSceneManager();
+void InitSceneSystem();
+void QuitSceneSystem();
 void SwitchScene(SceneID scene_id);
 void BackToPrevScene();
 void HandleSceneEvent(SDL_Event* event);
 void TickScene(float dt);
 void FreeScene(Scene* scene);
-void FreeSceneManager();
 
 #endif

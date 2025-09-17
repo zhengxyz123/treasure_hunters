@@ -21,15 +21,28 @@
 */
 
 #include "tilemap.h"
+#include "../resources/loader.h"
 #include <stdlib.h>
 
 extern GameApp global_app;
 
+SDL_Texture* tilesets_texture = NULL;
+
+void InitMapSystem() {
+    tilesets_texture = LoadTexture("images/tilesets.png");
+}
+
+void QuitMapSystem() {
+    SDL_DestroyTexture(tilesets_texture);
+}
+
 TileMap* LoadTileMap(const unsigned char* content, size_t size) {
     TileMap* map = calloc(1, sizeof(TileMap));
     map->map = cute_tiled_load_map_from_memory(content, size, NULL);
+    Uint32 format = 0;
+    SDL_QueryTexture(tilesets_texture, &format, NULL, NULL, NULL);
     map->texture = SDL_CreateTexture(
-        global_app.renderer, SDL_PIXELFORMAT_RGBA4444,
+        global_app.renderer, 0,
         SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, 512, 512
     );
     SDL_SetRenderTarget(global_app.renderer, map->texture);
