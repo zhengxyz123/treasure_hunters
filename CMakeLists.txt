@@ -26,6 +26,7 @@ add_library(cjson ${CJSON_DIR}/cJSON.c ${CJSON_DIR}/cJSON.h)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 
 aux_source_directory(src BASE_DIR)
+aux_source_directory(src/entities ENTITIES_DIR)
 aux_source_directory(src/map MAP_DIR)
 aux_source_directory(src/resources RES_DIR)
 aux_source_directory(src/scenes SCENES_DIR)
@@ -37,7 +38,7 @@ add_custom_target(
     COMMENT "Generate resource pack"
     VERBATIM
 )
-add_executable(${PROJECT_NAME} ${BASE_DIR} ${MAP_DIR} ${RES_DIR} ${SCENES_DIR} ${UI_DIR})
+add_executable(${PROJECT_NAME} ${BASE_DIR} ${ENTITIES_DIR} ${MAP_DIR} ${RES_DIR} ${SCENES_DIR} ${UI_DIR})
 add_dependencies(${PROJECT_NAME} generate_respack)
 if(NOT PSP)
     target_link_libraries(${PROJECT_NAME} SDL2::SDL2 SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer cjson)

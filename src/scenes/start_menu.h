@@ -23,7 +23,6 @@
 #ifndef _TH_START_MENU_H_
 #define _TH_START_MENU_H_
 
-#include "../global.h"
 #include "scene.h"
 
 extern Scene start_scene;

@@ -212,7 +212,7 @@ void HandleWidgetEvent(SDL_Event* event) {
 }
 
 void TickWidgets(float dt) {
-    if (!global_app.joystick.available) {
+    if (!global_app.joystick.available || ctx.widget_list.len == 0) {
         return;
     }
     int dir = 0;

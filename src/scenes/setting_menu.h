@@ -23,7 +23,6 @@
 #ifndef _TH_SETTING_MENU_H_
 #define _TH_SETTING_MENU_H_
 
-#include "../global.h"
 #include "../ui/widget.h"
 #include "scene.h"
 

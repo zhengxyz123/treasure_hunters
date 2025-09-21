@@ -30,6 +30,7 @@
 typedef enum {
     START_SCENE,
     SETTING_SCENE,
+    WORLD_SCENE,
     LAST_SCENE
 } SceneID;
 

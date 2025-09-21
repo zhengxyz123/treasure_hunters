@@ -65,9 +65,11 @@ void StartSceneTick(float dt) {
     float text_w, text_h;
     WidgetBegin();
     CalcButtonTextSize("Start Game", &text_w, &text_h);
-    WidgetButton(
-        (win_w - text_w) / 2.0, win_h / 2.0 - 2.75 * text_h, "Start Game", 0
-    );
+    if (WidgetButton(
+            (win_w - text_w) / 2.0, win_h / 2.0 - 2.75 * text_h, "Start Game", 0
+        )) {
+        SwitchScene(WORLD_SCENE);
+    }
     CalcButtonTextSize("Continue Game", &text_w, &text_h);
     WidgetButton(
         (win_w - text_w) / 2.0, win_h / 2.0 - 1.25 * text_h, "Continue Game", 1

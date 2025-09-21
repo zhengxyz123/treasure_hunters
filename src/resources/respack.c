@@ -30,10 +30,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-/**
- * the `fnv_32a_str` function from
- * https://github.com/lcn2/fnv/blob/master/hash_32a.c
- */
+/*
+  The `fnv_32a_str` function from
+  https://github.com/lcn2/fnv/blob/master/hash_32a.c
+*/
 uint32_t fnv1a_32(char* str, uint32_t hval) {
     unsigned char* s = (unsigned char*)str;
     while (*s) {
@@ -52,6 +52,10 @@ Respack* LoadRespack(char* filename) {
     Respack* rpkg = calloc(1, sizeof(Respack));
     FILE* fp = fopen(filename, "rb");
     rpkg->fp = fp;
+    if (!rpkg->fp) {
+        free(rpkg);
+        return NULL;
+    }
     fread(&rpkg->header, sizeof(RespackHeader), 1, rpkg->fp);
     if (feof(rpkg->fp) || ferror(rpkg->fp)) {
         goto error0;
@@ -114,18 +118,18 @@ int RespackHasItem(Respack* rpkg, char* key, size_t* index) {
     return 0;
 }
 
-/**
- * Load the asset named `key` from the resource pack `rpkg`.
- *
- * `length` is a pointer filled with length of asset, can be `NULL`.
- * Returns a pointer to the asset's address.
- *
- * If `length==0` or the return value is `NULL`, the asset may not exist or the
- * resource pack format may be invalid.
- *
- * NOTE: Please do not use this function directly, use `Load*` function in
- * `resources/loader.h` instead.
- */
+/*
+  Load the asset named `key` from the resource pack `rpkg`.
+
+  `length` is a pointer filled with length of asset, can be `NULL`.
+  Returns a pointer to the asset's address.
+
+  If `length==0` or the return value is `NULL`, the asset may not exist or the
+  resource pack format may be invalid.
+
+  NOTE: Please do not use this function directly, use `Load*` function in
+  `resources/loader.h` instead.
+*/
 void* RespackGetItem(Respack* rpkg, char* key, size_t* length) {
     size_t index;
     if (!RespackHasItem(rpkg, key, &index)) {
@@ -151,7 +155,7 @@ void* RespackGetItem(Respack* rpkg, char* key, size_t* length) {
     return data;
 }
 
-void DestroyRespack(Respack* rpkg) {
+void FreeRespack(Respack* rpkg) {
     fclose(rpkg->fp);
     free(rpkg->entries);
     free(rpkg);

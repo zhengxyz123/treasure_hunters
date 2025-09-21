@@ -39,7 +39,7 @@ import tempfile
 import shutil
 from pathlib import Path
 
-prefix_info = "This file was automatically generated, please do not modify it!"
+prefix_info = "this file was automatically generated, please do not modify it!"
 
 source_content = """\
 // {{info}}
@@ -81,11 +81,11 @@ def main() -> int:
             should_use_xvfb = True
 
     if not args.res_dir.exists() or not args.res_dir.is_dir():
-        raise RuntimeError(f"'{args.res_dir}' must be a directory")
+        raise RuntimeError(f"{args.res_dir!s} must be a directory")
     if args.source.exists() and not args.source.is_file():
-        raise RuntimeError(f"'{args.source}' must be a file")
+        raise RuntimeError(f"{args.source!s} must be a file")
     if args.header.exists() and not args.header.is_file():
-        raise RuntimeError(f"'{args.header}' must be a file")
+        raise RuntimeError(f"{args.header!s} must be a file")
     if args.source.parent != args.header.parent:
         raise RuntimeError("source file and header file must be in the same directory")
 

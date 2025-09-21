@@ -61,6 +61,6 @@ uint32_t fnv1a_32(char* str, uint32_t hval);
 Respack* LoadRespack(char* filename);
 int RespackHasItem(Respack* rpkg, char* key, size_t* index);
 void* RespackGetItem(Respack* rpkg, char* key, size_t* length);
-void DestroyRespack(Respack* rpkg);
+void FreeRespack(Respack* rpkg);
 
 #endif

@@ -20,46 +20,32 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_TILEMAP_H_
-#define _TH_TILEMAP_H_
+#ifndef _TH_ENTITIES_BASE_H_
+#define _TH_ENTITIES_BASE_H_
 
 #include "../global.h"
-#include <cute_tiled.h>
-
-typedef cute_tiled_map_t TilemapImpl;
-typedef cute_tiled_layer_t TilemapLayer;
-typedef cute_tiled_object_t TilemapObject;
-typedef cute_tiled_property_t TilemapProperty;
-typedef cute_tiled_tile_descriptor_t TileDescriptor;
-typedef cute_tiled_frame_t TileFrame;
-typedef cute_tiled_tileset_t Tileset;
 
 typedef enum {
-    TILEMAP_LAYERGROUP_FRONT,
-    TILEMAP_LAYERGROUP_MIDDLE,
-    TILEMAP_LAYERGROUP_BACK
-} TilemapLayerGroup;
+    ENTITY_TYPE_PLAYER
+} EntityType;
+
+typedef enum {
+    ENTITY_STATUS_HURT
+} EntityStatus;
 
 typedef struct {
-    TilemapImpl* tilemap;
-#if !defined(__PSP__)
+    EntityType type;
+    EntityStatus status;
+    SDL_FPoint pos;
+    SDL_FRect bbox;
+    SDL_FPoint bbox_offset;
+    int health;
+    int damage;
     struct {
-        SDL_Texture* front;
-        SDL_Texture* middle;
-        SDL_Texture* back;
-    } texture;
-#endif
-} Tilemap;
-
-void InitMapSystem();
-void QuitMapSystem();
-Tilemap* LoadTilemap_Mem(void* content, size_t size);
-Tilemap* LoadTilemap(char* filename);
-#if defined(__PSP__)
-void TilemapDrawLayer(Tilemap* map, TilemapLayerGroup group, SDL_Point* offset);
-#endif
-int TilemapIsEmpty(Tilemap* map, SDL_FRect* rect);
-int TilemapHasDamage(Tilemap* map, SDL_FRect* rect);
-void FreeTilemap(Tilemap* map);
+        float cooldown_time;
+        float immortal_time;
+    } take_damage;
+    void* userdata;
+} Entity;
 
 #endif

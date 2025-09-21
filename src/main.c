@@ -24,6 +24,7 @@
 #include "resources/loader.h"
 #include "scenes/setting_menu.h"
 #include "scenes/start_menu.h"
+#include "scenes/world.h"
 #include "setting.h"
 #include "ui/ui.h"
 #if defined(__WIN32__)
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
         );
         return 1;
     }
-    Mix_OpenAudio(48000, AUDIO_F32SYS, 2, 2048);
+    Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 2048);
 
     // setup global_app
     global_app.argc = argc;
@@ -91,8 +92,27 @@ int main(int argc, char* argv[]) {
     strcpy(global_app.exec_path, base_path);
     SDL_free(base_path);
     char* rpkg_path = calloc(PATH_MAX, sizeof(char));
+    strcpy(rpkg_path, global_app.exec_path);
     strcat(rpkg_path, "assets.rpkg");
     global_app.assets_pack = LoadRespack(rpkg_path);
+    if (!global_app.assets_pack) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR, "%s is not a resource pack", rpkg_path
+        );
+        char* message = calloc(PATH_MAX + 24, sizeof(char));
+        sprintf(message, "%s is not a resource pack", rpkg_path);
+        SDL_ShowSimpleMessageBox(
+            SDL_MESSAGEBOX_ERROR, "Treasure Hunter", message, NULL
+        );
+        free(rpkg_path);
+        free(message);
+        free(global_app.exec_path);
+        Mix_CloseAudio();
+        Mix_Quit();
+        IMG_Quit();
+        SDL_Quit();
+        return 1;
+    }
     free(rpkg_path);
 
     // create the window, renderer and set the window icon
@@ -144,6 +164,7 @@ int main(int argc, char* argv[]) {
     /* setup game engine */
     scene_array[START_SCENE] = &start_scene;
     scene_array[SETTING_SCENE] = &setting_scene;
+    scene_array[WORLD_SCENE] = &world_scene;
     InitMapSystem();
     InitSceneSystem();
     InitUISystem();
@@ -225,7 +246,7 @@ int main(int argc, char* argv[]) {
     QuitMapSystem();
     QuitSceneSystem();
     QuitUISystem();
-    DestroyRespack(global_app.assets_pack);
+    FreeRespack(global_app.assets_pack);
     free(global_app.exec_path);
 #if !defined(__PSP__)
     SDL_FreeSurface(icon_image);
