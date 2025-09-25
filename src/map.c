@@ -20,23 +20,24 @@
   THE SOFTWARE.
 */
 
-#include "tilemap.h"
-#include "../resources/loader.h"
+#include "map.h"
+#include "global.h"
+#include "resources/loader.h"
 #include <stdlib.h>
 
-extern GameApp global_app;
+extern GameApp game_app;
 
-SDL_Texture* tilesets_texture = NULL;
+SDL_Texture* terrains_texture = NULL;
 
 void InitMapSystem() {
-    tilesets_texture = LoadTexture("images/tilesets.png");
+    terrains_texture = LoadTexture("maps/tilesets/terrains.png");
 }
 
 void QuitMapSystem() {
-    SDL_DestroyTexture(tilesets_texture);
+    SDL_DestroyTexture(terrains_texture);
 }
 
-SDL_Texture* GetTextureRegionFromGID(Tilemap* map, int gid, SDL_Rect* rect) {
+SDL_Texture* GetTextureRegionFromGID(Map* map, int gid, SDL_Rect* rect) {
     for (Tileset* tileset = map->tilemap->tilesets; tileset;
          tileset = tileset->next) {
         if (tileset->firstgid <= gid &&
@@ -47,23 +48,18 @@ SDL_Texture* GetTextureRegionFromGID(Tilemap* map, int gid, SDL_Rect* rect) {
             rect->y = lid / dw * tileset->tileheight;
             rect->w = tileset->tilewidth;
             rect->h = tileset->tileheight;
-            if (strcmp(tileset->image.ptr, "tilesets.png") == 0) {
-                return tilesets_texture;
+            if (strcmp(tileset->image.ptr, "terrains.png") == 0) {
+                return terrains_texture;
             }
         }
     }
     return NULL;
 }
 
-/*
-  `TilemapDrawLayer` is a global function for PSP and `DrawTilemapTotexture` is
-  a local function for other platform.
-*/
-
 #if defined(__PSP__)
-void TilemapDrawLayer(Tilemap* map, TilemapLayerGroup group, SDL_Point* offset)
+void DrawMap(Map* map, TilemapLayerGroup group, SDL_Point* offset)
 #else
-void DrawTilemapTotexture(Tilemap* map, TilemapLayerGroup group)
+void DrawMapTotexture(Map* map, TilemapLayerGroup group)
 #endif
 {
     TilemapLayer* layer = map->tilemap->layers;
@@ -132,63 +128,90 @@ next:
 #endif
             SDL_Texture* texture =
                 GetTextureRegionFromGID(map, layer->data[i], &srcrect);
-            SDL_RenderCopy(global_app.renderer, texture, &srcrect, &dstrect);
+            SDL_RenderCopy(game_app.renderer, texture, &srcrect, &dstrect);
         }
     }
 }
 
-Tilemap* LoadTilemap_Mem(void* content, size_t size) {
-    Tilemap* map = calloc(1, sizeof(Tilemap));
+void MapDrawLayer(Map* map, TilemapLayerGroup group, SDL_Point* offset) {
+#if defined(__PSP__)
+    DrawMap(map, group, offset);
+#else
+    SDL_Texture* texture = NULL;
+    switch (group) {
+    case TILEMAP_LAYERGROUP_BACK:
+        texture = map->texture.back;
+        break;
+    case TILEMAP_LAYERGROUP_FRONT:
+        texture = map->texture.middle;
+        break;
+    case TILEMAP_LAYERGROUP_MIDDLE:
+        texture = map->texture.front;
+        break;
+    }
+    int w, h;
+    SDL_QueryTexture(texture, NULL, NULL, &w, &h);
+    SDL_RenderCopy(
+        game_app.renderer, texture, NULL,
+        &(SDL_Rect){offset->x, offset->y, w, h}
+    );
+#endif
+}
+
+Map* LoadMap_Mem(void* content, size_t size) {
+    Map* map = calloc(1, sizeof(Map));
+    map->entity_list = CreateEntityList();
     map->tilemap = cute_tiled_load_map_from_memory(content, size, NULL);
 #if !defined(__PSP__)
     Uint32 format = 0;
-    SDL_QueryTexture(tilesets_texture, &format, NULL, NULL, NULL);
+    SDL_QueryTexture(terrains_texture, &format, NULL, NULL, NULL);
     map->texture.front = SDL_CreateTexture(
-        global_app.renderer, 0,
+        game_app.renderer, 0,
         SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET,
         map->tilemap->width * map->tilemap->tilewidth,
         map->tilemap->height * map->tilemap->tileheight
     );
     SDL_SetTextureBlendMode(map->texture.front, SDL_BLENDMODE_BLEND);
     map->texture.middle = SDL_CreateTexture(
-        global_app.renderer, 0,
+        game_app.renderer, 0,
         SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET,
         map->tilemap->width * map->tilemap->tilewidth,
         map->tilemap->height * map->tilemap->tileheight
     );
     SDL_SetTextureBlendMode(map->texture.middle, SDL_BLENDMODE_BLEND);
     map->texture.back = SDL_CreateTexture(
-        global_app.renderer, 0, SDL_TEXTUREACCESS_TARGET,
+        game_app.renderer, 0, SDL_TEXTUREACCESS_TARGET,
         map->tilemap->width * map->tilemap->tilewidth,
         map->tilemap->height * map->tilemap->tileheight
     );
     SDL_SetTextureBlendMode(map->texture.back, SDL_BLENDMODE_BLEND);
 
-    SDL_SetRenderTarget(global_app.renderer, map->texture.back);
-    DrawTilemapTotexture(map, TILEMAP_LAYERGROUP_BACK);
-    SDL_SetRenderTarget(global_app.renderer, NULL);
-    SDL_SetRenderTarget(global_app.renderer, map->texture.middle);
-    DrawTilemapTotexture(map, TILEMAP_LAYERGROUP_MIDDLE);
-    SDL_SetRenderTarget(global_app.renderer, NULL);
-    SDL_SetRenderTarget(global_app.renderer, map->texture.front);
-    DrawTilemapTotexture(map, TILEMAP_LAYERGROUP_FRONT);
-    SDL_SetRenderTarget(global_app.renderer, NULL);
+    SDL_SetRenderTarget(game_app.renderer, map->texture.back);
+    DrawMapTotexture(map, TILEMAP_LAYERGROUP_BACK);
+    SDL_SetRenderTarget(game_app.renderer, NULL);
+    SDL_SetRenderTarget(game_app.renderer, map->texture.middle);
+    DrawMapTotexture(map, TILEMAP_LAYERGROUP_MIDDLE);
+    SDL_SetRenderTarget(game_app.renderer, NULL);
+    SDL_SetRenderTarget(game_app.renderer, map->texture.front);
+    DrawMapTotexture(map, TILEMAP_LAYERGROUP_FRONT);
+    SDL_SetRenderTarget(game_app.renderer, NULL);
 #endif
     return map;
 }
 
-Tilemap* LoadTilemap(char* filename) {
+Map* LoadMap(char* filename) {
     size_t size;
-    void* content = RespackGetItem(global_app.assets_pack, filename, &size);
+    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
         return NULL;
     }
-    Tilemap* map = LoadTilemap_Mem(content, size);
+    Map* map = LoadMap_Mem(content, size);
     free(content);
     return map;
 }
 
-void FreeTilemap(Tilemap* map) {
+void FreeMap(Map* map) {
+    FreeEntityList(map->entity_list);
     cute_tiled_free_map(map->tilemap);
 #if !defined(__PSP__)
     SDL_DestroyTexture(map->texture.front);

@@ -23,7 +23,7 @@
 #ifndef _TH_ENTITIES_BASE_H_
 #define _TH_ENTITIES_BASE_H_
 
-#include "../global.h"
+#include <SDL.h>
 
 typedef enum {
     ENTITY_TYPE_PLAYER
@@ -34,6 +34,7 @@ typedef enum {
 } EntityStatus;
 
 typedef struct {
+    size_t id;
     EntityType type;
     EntityStatus status;
     SDL_FPoint pos;
@@ -47,5 +48,21 @@ typedef struct {
     } take_damage;
     void* userdata;
 } Entity;
+
+typedef struct EntityListNode {
+    Entity* data;
+    struct EntityListNode* next;
+} EntityListNode;
+
+typedef EntityListNode* EntityList;
+
+void InitEntitySystem();
+void QuitEntitySystem();
+EntityList CreateEntityList();
+void FreeEntityList(EntityList list);
+void AddEntityToList(EntityList list, Entity* entity);
+void RemoveEntityInList(EntityList list, Entity* entity);
+void DestroyEntity(Entity* entity);
+void DrawEntity(Entity* entity);
 
 #endif

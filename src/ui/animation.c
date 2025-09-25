@@ -21,9 +21,10 @@
 */
 
 #include "animation.h"
+#include "../global.h"
 #include "frametimer.h"
 
-extern GameApp global_app;
+extern GameApp game_app;
 
 Animation* CreateAnimation(
     SDL_Texture* texture, float duration, SDL_Rect* rect, int count
@@ -42,6 +43,11 @@ Animation* CreateAnimation(
     return animation;
 }
 
+void FreeAnimation(Animation* animation) {
+    free(animation->clip);
+    free(animation);
+}
+
 void DrawAnimationEx(
     Animation* animation, float x, float y, float scale, double angle,
     SDL_FPoint* center, SDL_RendererFlip flip
@@ -49,7 +55,7 @@ void DrawAnimationEx(
     if (animation->paused) {
         return;
     }
-    animation->dt += frametimer_delta_time(global_app.timer);
+    animation->dt += frametimer_delta_time(game_app.timer);
     if (animation->dt > animation->clip[animation->now_clip].duration) {
         animation->now_clip = animation->now_clip + 1 > animation->count - 1
                                 ? 0
@@ -61,7 +67,7 @@ void DrawAnimationEx(
         animation->clip[animation->now_clip].area.h * scale
     };
     SDL_RenderCopyExF(
-        global_app.renderer, animation->texture,
+        game_app.renderer, animation->texture,
         &animation->clip[animation->now_clip].area, &dstrect, angle, center,
         flip
     );
@@ -69,9 +75,4 @@ void DrawAnimationEx(
 
 void DrawAnimation(Animation* animation, float x, float y, float scale) {
     DrawAnimationEx(animation, x, y, scale, 0.0, NULL, SDL_FLIP_NONE);
-}
-
-void FreeAnimation(Animation* animation) {
-    free(animation->clip);
-    free(animation);
 }

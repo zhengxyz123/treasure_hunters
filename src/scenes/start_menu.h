@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_START_MENU_H_
-#define _TH_START_MENU_H_
+#ifndef _TH_SCENE_START_MENU_H_
+#define _TH_SCENE_START_MENU_H_
 
 #include "scene.h"
 

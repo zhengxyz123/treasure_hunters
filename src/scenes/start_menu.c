@@ -21,11 +21,12 @@
 */
 
 #include "start_menu.h"
+#include "../global.h"
 #include "../ui/text.h"
 #include "../ui/widget.h"
 #include "background.h"
 
-extern GameApp global_app;
+extern GameApp game_app;
 
 Scene start_scene = {
     .init = StartSceneInit, .tick = StartSceneTick, .free = StartSceneFree
@@ -43,13 +44,13 @@ void StartSceneInit() {}
 
 void StartSceneTick(float dt) {
     int win_w, win_h;
-    SDL_GetWindowSize(global_app.window, &win_w, &win_h);
+    SDL_GetWindowSize(game_app.window, &win_w, &win_h);
 #if defined(__PSP__)
-    global_app.interface_size = 2.0;
+    game_app.interface_size = 2.0;
 #else
-    global_app.interface_size = 0.25 * win_h / (4 * 1.5 * SMALL_TEXT_HEIGHT);
-    if (global_app.interface_size < 2.0) {
-        global_app.interface_size = 2.0;
+    game_app.interface_size = 0.25 * win_h / (4 * 1.5 * SMALL_TEXT_HEIGHT);
+    if (game_app.interface_size < 2.0) {
+        game_app.interface_size = 2.0;
     }
 #endif
     DrawBackground(dt);
@@ -66,25 +67,29 @@ void StartSceneTick(float dt) {
     WidgetBegin();
     CalcButtonTextSize("Start Game", &text_w, &text_h);
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 - 2.75 * text_h, "Start Game", 0
+            (win_w - text_w) / 2.0, win_h / 2.0 - 2.5 * text_h, "Start Game", 0
         )) {
         SwitchScene(WORLD_SCENE);
     }
     CalcButtonTextSize("Continue Game", &text_w, &text_h);
     WidgetButton(
-        (win_w - text_w) / 2.0, win_h / 2.0 - 1.25 * text_h, "Continue Game", 1
+        (win_w - text_w) / 2.0, win_h / 2.0 - text_h, "Continue Game", 1
     );
     CalcButtonTextSize("Settings", &text_w, &text_h);
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 + 0.25 * text_h, "Settings", 0
+            (win_w - text_w) / 2.0, win_h / 2.0 + 0.5 * text_h, "Settings", 0
         )) {
         SwitchScene(SETTING_SCENE);
     }
+    CalcButtonTextSize("Credits", &text_w, &text_h);
+    WidgetButton(
+        (win_w - text_w) / 2.0, win_h / 2.0 + 2 * text_h, "Credits", 0
+    );
     CalcButtonTextSize("Exit", &text_w, &text_h);
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 + 1.75 * text_h, "Exit", 0
+            (win_w - text_w) / 2.0, win_h / 2.0 + 3.5 * text_h, "Exit", 0
         )) {
-        global_app.should_quit = 1;
+        game_app.should_quit = 1;
     }
     WidgetEnd();
 }

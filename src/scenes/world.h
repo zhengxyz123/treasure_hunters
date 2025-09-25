@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_WORLD_H_
-#define _TH_WORLD_H_
+#ifndef _TH_SCENE_WORLD_H_
+#define _TH_SCENE_WORLD_H_
 
 #include "scene.h"
 

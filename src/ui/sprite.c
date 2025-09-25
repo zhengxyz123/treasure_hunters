@@ -24,7 +24,7 @@
 #include "../global.h"
 #include "frametimer.h"
 
-extern GameApp global_app;
+extern GameApp game_app;
 
 Sprite* CreateTextureSprite(SDL_Texture* texture) {
     Sprite* sprite = (Sprite*)calloc(1, sizeof(Sprite));
@@ -54,6 +54,15 @@ Sprite* CreateAnimationSprite(Animation* animation) {
     return sprite;
 }
 
+void FreeSprite(Sprite* sprite) {
+    if (sprite->type == SPRITE_TYPE_TEXTURE) {
+        SDL_DestroyTexture(sprite->image.texture);
+    } else {
+        FreeAnimation(sprite->image.animation);
+    }
+    free(sprite);
+}
+
 void SetSpritePosition(Sprite* sprite, float x, float y) {
     sprite->area.x = x;
     sprite->area.y = y;
@@ -72,7 +81,7 @@ void DrawSprite(Sprite* sprite) {
         );
         SDL_SetTextureAlphaMod(sprite->image.texture, sprite->color.a);
         SDL_RenderCopyExF(
-            global_app.renderer, sprite->image.texture, NULL, &sprite->area,
+            game_app.renderer, sprite->image.texture, NULL, &sprite->area,
             sprite->angle, &sprite->center, sprite->flip
         );
     } else {
@@ -86,7 +95,7 @@ void DrawSprite(Sprite* sprite) {
             animation->dt = 0;
             goto draw;
         }
-        animation->dt += frametimer_delta_time(global_app.timer);
+        animation->dt += frametimer_delta_time(game_app.timer);
         if (animation->dt > animation->clip[animation->now_clip].duration) {
             animation->now_clip = animation->now_clip + 1 > animation->count - 1
                                     ? 0
@@ -95,7 +104,7 @@ void DrawSprite(Sprite* sprite) {
         }
     draw:
         SDL_RenderCopyExF(
-            global_app.renderer, animation->texture,
+            game_app.renderer, animation->texture,
             &animation->clip[animation->now_clip].area, &sprite->area,
             sprite->angle, &sprite->center, sprite->flip
         );

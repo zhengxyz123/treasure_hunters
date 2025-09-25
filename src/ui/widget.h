@@ -20,10 +20,10 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_WIDGET_H_
-#define _TH_WIDGET_H_
+#ifndef _TH_UI_WIDGET_H_
+#define _TH_UI_WIDGET_H_
 
-#include "../global.h"
+#include <SDL.h>
 
 typedef struct {
     int is_dragging;

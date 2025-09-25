@@ -23,8 +23,9 @@
 #include "loader.h"
 #include "../global.h"
 #include "respack.h"
+#include <SDL_image.h>
 
-extern GameApp global_app;
+extern GameApp game_app;
 
 SDL_Surface* LoadSurfaceFromMem(void* content, size_t size) {
     SDL_RWops* raw_image = SDL_RWFromConstMem(content, size);
@@ -34,7 +35,7 @@ SDL_Surface* LoadSurfaceFromMem(void* content, size_t size) {
 
 SDL_Surface* LoadSurface(char* filename) {
     size_t size;
-    void* content = RespackGetItem(global_app.assets_pack, filename, &size);
+    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
         return NULL;
     }
@@ -45,14 +46,13 @@ SDL_Surface* LoadSurface(char* filename) {
 
 SDL_Texture* LoadTextureFromMem(void* content, size_t size) {
     SDL_RWops* raw_image = SDL_RWFromConstMem(content, size);
-    SDL_Texture* texture =
-        IMG_LoadTexture_RW(global_app.renderer, raw_image, 1);
+    SDL_Texture* texture = IMG_LoadTexture_RW(game_app.renderer, raw_image, 1);
     return texture;
 }
 
 SDL_Texture* LoadTexture(char* filename) {
     size_t size;
-    void* content = RespackGetItem(global_app.assets_pack, filename, &size);
+    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
         return NULL;
     }
@@ -69,7 +69,7 @@ Mix_Chunk* LoadSoundFromMem(void* content, size_t size) {
 
 Mix_Chunk* LoadSound(char* filename) {
     size_t size;
-    void* content = RespackGetItem(global_app.assets_pack, filename, &size);
+    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
         return NULL;
     }

@@ -23,10 +23,11 @@
 #ifndef _TH_TILEMAP_H_
 #define _TH_TILEMAP_H_
 
-#include "../global.h"
+#include "entities/base.h"
+#include <SDL.h>
 #include <cute_tiled.h>
 
-typedef cute_tiled_map_t TilemapImpl;
+typedef cute_tiled_map_t Tilemap;
 typedef cute_tiled_layer_t TilemapLayer;
 typedef cute_tiled_object_t TilemapObject;
 typedef cute_tiled_property_t TilemapProperty;
@@ -41,7 +42,8 @@ typedef enum {
 } TilemapLayerGroup;
 
 typedef struct {
-    TilemapImpl* tilemap;
+    EntityList entity_list;
+    Tilemap* tilemap;
 #if !defined(__PSP__)
     struct {
         SDL_Texture* front;
@@ -49,17 +51,15 @@ typedef struct {
         SDL_Texture* back;
     } texture;
 #endif
-} Tilemap;
+} Map;
 
 void InitMapSystem();
 void QuitMapSystem();
-Tilemap* LoadTilemap_Mem(void* content, size_t size);
-Tilemap* LoadTilemap(char* filename);
-#if defined(__PSP__)
-void TilemapDrawLayer(Tilemap* map, TilemapLayerGroup group, SDL_Point* offset);
-#endif
-int TilemapIsEmpty(Tilemap* map, SDL_FRect* rect);
-int TilemapHasDamage(Tilemap* map, SDL_FRect* rect);
-void FreeTilemap(Tilemap* map);
+Map* LoadMap_Mem(void* content, size_t size);
+Map* LoadMap(char* filename);
+void FreeMap(Map* map);
+void MapDrawLayer(Map* map, TilemapLayerGroup group, SDL_Point* offset);
+int MapIsEmpty(Map* map, SDL_FRect* rect);
+int MapHasDamage(Map* map, SDL_FRect* rect);
 
 #endif

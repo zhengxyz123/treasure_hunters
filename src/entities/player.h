@@ -20,33 +20,22 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_UI_ANIMATION_H_
-#define _TH_UI_ANIMATION_H_
+#ifndef _TH_ENTITIES_PLAYER_H_
+#define _TH_ENTITIES_PLAYER_H_
 
-#include <SDL.h>
+#include "../global.h"
+#include "base.h"
 
-typedef struct {
-    float duration;
-    SDL_Rect area;
-} AnimationClip;
+extern GameApp game_app;
 
 typedef struct {
-    int count;
-    int paused;
-    int now_clip;
-    float dt;
-    SDL_Texture* texture;
-    AnimationClip* clip;
-} Animation;
+    int dummy;
+} PlayerUserData;
 
-Animation* CreateAnimation(
-    SDL_Texture* texture, float duration, SDL_Rect* rect, int count
-);
-void FreeAnimation(Animation* animation);
-void DrawAnimationEx(
-    Animation* animation, float x, float y, float scale, double angle,
-    SDL_FPoint* center, SDL_RendererFlip flip
-);
-void DrawAnimation(Animation* animation, float x, float y, float scale);
+void InitPlayerTexture();
+void FreePlayerTexture();
+Entity* CreatePLayerEntity();
+void DrawPlayerEntity(Entity* player);
+void DestroyPlayerEntity(Entity* player);
 
 #endif

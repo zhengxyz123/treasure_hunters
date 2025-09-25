@@ -21,12 +21,14 @@
 */
 
 #include "setting_menu.h"
+#include "../global.h"
 #include "../setting.h"
 #include "../ui/text.h"
 #include "background.h"
+#include <SDL_mixer.h>
 
-extern GameApp global_app;
-extern Setting global_setting;
+extern GameApp game_app;
+extern Setting game_setting;
 
 Scene setting_scene = {
     .init = SettingSceneInit,
@@ -87,20 +89,20 @@ TextStyle hint_style = {
 
 void SettingSceneInit() {
 #if !defined(__PSP__)
-    fullscreen_data = global_setting.fullscreen;
+    fullscreen_data = game_setting.fullscreen;
 #endif
-    music_volume_data.now = global_setting.music_volume;
-    sfx_volume_data.now = global_setting.sfx_volume;
+    music_volume_data.now = game_setting.music_volume;
+    sfx_volume_data.now = game_setting.sfx_volume;
 #if defined(__PSP__)
-    mute_data = global_setting.mute_all;
+    mute_data = game_setting.mute_all;
 #else
-    mute_data = global_setting.mute_when_unfocused;
+    mute_data = game_setting.mute_when_unfocused;
 #endif
 }
 
 void SettingSceneTick(float dt) {
     int win_w, win_h;
-    SDL_GetWindowSize(global_app.window, &win_w, &win_h);
+    SDL_GetWindowSize(game_app.window, &win_w, &win_h);
     float items_h_coeff =
         2.25 * sizeof(settings_array) / sizeof(SettingItem) - 1.25;
     float max_text_w;
@@ -109,29 +111,28 @@ void SettingSceneTick(float dt) {
         settings_array[3].name, &item_text_style_normal, &max_text_w, NULL
     );
 #if defined(__PSP__)
-    global_app.interface_size = 1.4;
+    game_app.interface_size = 1.4;
 #else
-    global_app.interface_size =
-        0.75 * win_h / items_h_coeff / SMALL_TEXT_HEIGHT;
-    if (win_w / 2.0 - 20 - global_app.interface_size * max_text_w < 0) {
-        global_app.interface_size = (win_w / 2.0 - 20) / max_text_w;
+    game_app.interface_size = 0.75 * win_h / items_h_coeff / SMALL_TEXT_HEIGHT;
+    if (win_w / 2.0 - 20 - game_app.interface_size * max_text_w < 0) {
+        game_app.interface_size = (win_w / 2.0 - 20) / max_text_w;
     }
-    if (global_app.interface_size < 1) {
-        global_app.interface_size = 1;
+    if (game_app.interface_size < 1) {
+        game_app.interface_size = 1;
     }
 #endif
-    float slider_w = max_text_w * global_app.interface_size - 20;
+    float slider_w = max_text_w * game_app.interface_size - 20;
     if (slider_w < win_w / 2.0 - 80) {
         slider_w = win_w / 2.0 - 80;
     }
-    float widget_y = ((float)win_h - items_h_coeff * global_app.interface_size *
+    float widget_y = ((float)win_h - items_h_coeff * game_app.interface_size *
                                          SMALL_TEXT_HEIGHT) /
                      2.0;
-    subtitle_text_style.size = global_app.interface_size;
-    item_text_style_normal.size = global_app.interface_size;
-    item_text_style_active.size = global_app.interface_size;
+    subtitle_text_style.size = game_app.interface_size;
+    item_text_style_normal.size = game_app.interface_size;
+    item_text_style_active.size = game_app.interface_size;
 #if !defined(__PSP__)
-    hint_style.size = global_app.interface_size / 1.2;
+    hint_style.size = game_app.interface_size / 1.2;
 #endif
     DrawBackground(dt);
     WidgetBegin();
@@ -147,7 +148,7 @@ void SettingSceneTick(float dt) {
                 button_clicked = settings_array[i].data.button;
             }
             widget_y +=
-                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+                text_h + game_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
             break;
         case SETTING_TYPE_OPTION:
             CalcSmallTextSize(
@@ -155,10 +156,9 @@ void SettingSceneTick(float dt) {
                 &text_h
             );
             WidgetOption(
-                win_w / 2.0 + 10 + 4 * global_app.interface_size,
+                win_w / 2.0 + 10 + 4 * game_app.interface_size,
                 widget_y +
-                    (text_h - global_app.interface_size * SMALL_TEXT_HEIGHT) /
-                        2,
+                    (text_h - game_app.interface_size * SMALL_TEXT_HEIGHT) / 2,
                 settings_array[i].data.option
             );
             DrawSmallText(
@@ -168,7 +168,7 @@ void SettingSceneTick(float dt) {
                 settings_array[i].name
             );
             widget_y +=
-                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+                text_h + game_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
             break;
         case SETTING_TYPE_SLIDER:
             CalcSmallTextSize(
@@ -178,9 +178,8 @@ void SettingSceneTick(float dt) {
             WidgetSlider(
                 win_w / 2.0 + 10,
                 widget_y +
-                    (text_h - global_app.interface_size * SMALL_TEXT_HEIGHT) /
-                        2,
-                slider_w, SMALL_TEXT_HEIGHT * global_app.interface_size,
+                    (text_h - game_app.interface_size * SMALL_TEXT_HEIGHT) / 2,
+                slider_w, SMALL_TEXT_HEIGHT * game_app.interface_size,
                 settings_array[i].data.slider
             );
             DrawSmallText(
@@ -190,7 +189,7 @@ void SettingSceneTick(float dt) {
                 settings_array[i].name
             );
             widget_y +=
-                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+                text_h + game_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
             break;
         case SETTING_TYPE_SUBTITLE:
             CalcSmallTextSize(
@@ -201,14 +200,14 @@ void SettingSceneTick(float dt) {
                 settings_array[i].name
             );
             widget_y +=
-                text_h + global_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
+                text_h + game_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
             break;
         }
     }
     WidgetEnd();
-    if (global_app.joystick.available) {
+    if (game_app.joystick.available) {
         DrawSmallText(
-            10, win_h - 5, &hint_style, "{1,15}{1,16}:Slider {1,1}:Back"
+            10, win_h - 5, &hint_style, "{1,10}{1,8}:Slider {1,1}:Back"
         );
     } else {
         DrawSmallText(10, win_h - 5, &hint_style, "ESC:Back");
@@ -226,37 +225,37 @@ void SettingSceneTick(float dt) {
         BackToPrevScene();
     }
 #if defined(__PSP__)
-    if (global_setting.music_volume != (int)music_volume_data.now &&
-        !global_setting.mute_all) {
+    if (game_setting.music_volume != (int)music_volume_data.now &&
+        !game_setting.mute_all) {
         Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
     }
-    global_setting.music_volume = (int)music_volume_data.now;
-    if (global_setting.sfx_volume != (int)sfx_volume_data.now &&
-        !global_setting.mute_all) {
+    game_setting.music_volume = (int)music_volume_data.now;
+    if (game_setting.sfx_volume != (int)sfx_volume_data.now &&
+        !game_setting.mute_all) {
         Mix_Volume(SFX_CHANNEL, (int)sfx_volume_data.now);
     }
-    global_setting.sfx_volume = (int)sfx_volume_data.now;
-    if (global_setting.mute_all != mute_data) {
-        Mix_Volume(MUSIC_CHANNEL, mute_data ? 0 : global_setting.music_volume);
-        Mix_Volume(SFX_CHANNEL, mute_data ? 0 : global_setting.sfx_volume);
+    game_setting.sfx_volume = (int)sfx_volume_data.now;
+    if (game_setting.mute_all != mute_data) {
+        Mix_Volume(MUSIC_CHANNEL, mute_data ? 0 : game_setting.music_volume);
+        Mix_Volume(SFX_CHANNEL, mute_data ? 0 : game_setting.sfx_volume);
     }
-    global_setting.mute_all = mute_data;
+    game_setting.mute_all = mute_data;
 #else
-    if (global_setting.fullscreen != fullscreen_data) {
-        SDL_SetWindowFullscreen(global_app.window, fullscreen_data);
+    if (game_setting.fullscreen != fullscreen_data) {
+        SDL_SetWindowFullscreen(game_app.window, fullscreen_data);
     }
-    global_setting.fullscreen = fullscreen_data;
-    if (global_setting.music_volume != (int)music_volume_data.now &&
-        global_app.window_focused) {
+    game_setting.fullscreen = fullscreen_data;
+    if (game_setting.music_volume != (int)music_volume_data.now &&
+        game_app.window_focused) {
         Mix_Volume(MUSIC_CHANNEL, (int)music_volume_data.now);
     }
-    global_setting.music_volume = (int)music_volume_data.now;
-    if (global_setting.sfx_volume != (int)sfx_volume_data.now &&
-        global_app.window_focused) {
+    game_setting.music_volume = (int)music_volume_data.now;
+    if (game_setting.sfx_volume != (int)sfx_volume_data.now &&
+        game_app.window_focused) {
         Mix_Volume(SFX_CHANNEL, (int)sfx_volume_data.now);
     }
-    global_setting.sfx_volume = (int)sfx_volume_data.now;
-    global_setting.mute_when_unfocused = mute_data;
+    game_setting.sfx_volume = (int)sfx_volume_data.now;
+    game_setting.mute_when_unfocused = mute_data;
 #endif
 }
 

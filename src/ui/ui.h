@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_UI_H_
-#define _TH_UI_H_
+#ifndef _TH_UI_UI_H_
+#define _TH_UI_UI_H_
 
 void InitUISystem();
 void QuitUISystem();

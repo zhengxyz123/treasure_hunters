@@ -30,14 +30,12 @@
 #include "widget.h"
 #include "../global.h"
 #include "../resources/loader.h"
-#include "../setting.h"
 #include "frametimer.h"
 #include "text.h"
 #include <assert.h>
 #include <stdlib.h>
 
-extern GameApp global_app;
-extern Setting global_setting;
+extern GameApp game_app;
 
 struct {
     struct {
@@ -169,13 +167,13 @@ void UpdateWidgetList() {
 void HandleWidgetEvent(SDL_Event* event) {
     switch (event->type) {
     case SDL_MOUSEMOTION:
-        if (!global_app.joystick.available) {
+        if (!game_app.joystick.available) {
             ctx.mouse_pos = (SDL_FPoint){event->motion.x, event->motion.y};
             UpdateWidgetList();
         }
         break;
     case SDL_MOUSEBUTTONDOWN:
-        if (!global_app.joystick.available) {
+        if (!game_app.joystick.available) {
             if (event->button.button == SDL_BUTTON(1)) {
                 ctx.mouse_clicked = 1;
             }
@@ -184,7 +182,7 @@ void HandleWidgetEvent(SDL_Event* event) {
         }
         break;
     case SDL_MOUSEBUTTONUP:
-        if (!global_app.joystick.available) {
+        if (!game_app.joystick.available) {
             ctx.mouse_clicked = 0;
             ctx.any_button_clicked = 0;
             ctx.any_option_clicked = 0;
@@ -212,22 +210,21 @@ void HandleWidgetEvent(SDL_Event* event) {
 }
 
 void TickWidgets(float dt) {
-    if (!global_app.joystick.available || ctx.widget_list.len == 0) {
+    if (!game_app.joystick.available || ctx.widget_list.len == 0) {
         return;
     }
     int dir = 0;
     int down = SDL_GameControllerGetAxis(
-                   global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
+                   game_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
                ) > 16384;
-    down =
-        down || SDL_GameControllerGetButton(
-                    global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_DOWN
-                );
+    down = down || SDL_GameControllerGetButton(
+                       game_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_DOWN
+                   );
     int up = SDL_GameControllerGetAxis(
-                 global_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
+                 game_app.joystick.device, SDL_CONTROLLER_AXIS_LEFTY
              ) < -16384;
     up = up || SDL_GameControllerGetButton(
-                   global_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_UP
+                   game_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_UP
                );
     ctx.joystick_cooldown_time -= dt;
     if (down && ctx.joystick_cooldown_time < 0) {
@@ -248,14 +245,14 @@ void TickWidgets(float dt) {
 }
 
 void WidgetBegin() {
-    if (global_app.joystick.available && ctx.widget_list.len > 0 &&
+    if (game_app.joystick.available && ctx.widget_list.len > 0 &&
         ctx.widget_list.now == 0) {
         SDL_FRect rect = ctx.widget_list.data[ctx.widget_list.now];
         ctx.mouse_pos = (SDL_FPoint){rect.x + rect.w / 2, rect.y + rect.h / 2};
     }
-    normal_text_style.size = global_app.interface_size;
-    hovering_text_style.size = global_app.interface_size;
-    disabled_text_style.size = global_app.interface_size;
+    normal_text_style.size = game_app.interface_size;
+    hovering_text_style.size = game_app.interface_size;
+    disabled_text_style.size = game_app.interface_size;
 }
 
 int WidgetIsHovering() {
@@ -307,7 +304,7 @@ int WidgetOption(float x, float y, int* data) {
         size * (SMALL_TEXT_HEIGHT + 8)
     };
     SDL_RenderCopyF(
-        global_app.renderer, button_texture, &(SDL_Rect){0, 0, 14, 14},
+        game_app.renderer, button_texture, &(SDL_Rect){0, 0, 14, 14},
         &button_dst
     );
     if (ctx.should_update_widgets) {
@@ -347,7 +344,7 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
     };
     for (int i = 0; i < 3; ++i) {
         SDL_RenderCopyF(
-            global_app.renderer, slider_texture, &slider_src[i], &slider_dst[i]
+            game_app.renderer, slider_texture, &slider_src[i], &slider_dst[i]
         );
     }
     SDL_FRect button_dst = {
@@ -355,7 +352,7 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
         y - 5 * h / 12, 7 * h / 6, 11 * h / 6
     };
     SDL_RenderCopyF(
-        global_app.renderer, slider_texture, &(SDL_Rect){15, 1, 7, 11},
+        game_app.renderer, slider_texture, &(SDL_Rect){15, 1, 7, 11},
         &button_dst
     );
     // handle events
@@ -366,8 +363,7 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
     if (SDL_PointInFRect(&ctx.mouse_pos, &box)) {
         ctx.is_hovering = 1;
     }
-    if (global_app.joystick.available &&
-        SDL_PointInFRect(&ctx.mouse_pos, &box)) {
+    if (game_app.joystick.available && SDL_PointInFRect(&ctx.mouse_pos, &box)) {
         data->is_dragging = 1;
     } else if (!ctx.mouse_clicked) {
         data->is_dragging = 0;
@@ -380,21 +376,21 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
                 SDL_PointInFRect(&ctx.mouse_clicked_pos, &box))) {
         data->is_dragging = 1;
     }
-    if (data->is_dragging && !global_app.joystick.available) {
+    if (data->is_dragging && !game_app.joystick.available) {
         data->now =
             data->min + (data->max - data->min) * (ctx.mouse_pos.x - x) / w;
         data->now = SDL_min(data->max, SDL_max(data->min, data->now));
         ctx.any_slider_clicked = 1;
     }
-    if (data->is_dragging && global_app.joystick.available) {
+    if (data->is_dragging && game_app.joystick.available) {
         int dir = 0;
         int right = SDL_GameControllerGetButton(
-            global_app.joystick.device, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER
+            game_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_RIGHT
         );
         int left = SDL_GameControllerGetButton(
-            global_app.joystick.device, SDL_CONTROLLER_BUTTON_LEFTSHOULDER
+            game_app.joystick.device, SDL_CONTROLLER_BUTTON_DPAD_LEFT
         );
-        ctx.slider_cooldown_time -= frametimer_delta_time(global_app.timer);
+        ctx.slider_cooldown_time -= frametimer_delta_time(game_app.timer);
         if (right && ctx.slider_cooldown_time < 0) {
             dir = 1;
             ctx.slider_cooldown_time = 0.15;

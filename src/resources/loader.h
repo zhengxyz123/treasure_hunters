@@ -23,7 +23,8 @@
 #ifndef _TH_LOADER_H_
 #define _TH_LOADER_H_
 
-#include "../global.h"
+#include <SDL.h>
+#include <SDL_mixer.h>
 
 SDL_Surface* LoadSurfaceFromMem(void* content, size_t size);
 SDL_Surface* LoadSurface(char* filename);

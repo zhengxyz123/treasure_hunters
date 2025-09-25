@@ -30,7 +30,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-extern GameApp global_app;
+extern GameApp game_app;
 
 SDL_Texture* big_text_texture = NULL;
 SDL_Texture* small_text_texture = NULL;
@@ -159,7 +159,7 @@ void DrawBigText(float x, float y, TextStyle* style, const char* format, ...) {
             continue;
         }
         SDL_RenderCopyF(
-            global_app.renderer, big_text_texture, &text_src, &text_dst
+            game_app.renderer, big_text_texture, &text_src, &text_dst
         );
         text_dst.x += BIG_TEXT_WIDTH * style->size + style->char_space;
     }
@@ -292,7 +292,7 @@ void DrawSmallText(
                         text_dst.w, text_dst.h
                     };
                     SDL_RenderCopyF(
-                        global_app.renderer, small_text_texture, &icon_src,
+                        game_app.renderer, small_text_texture, &icon_src,
                         &shadow_dst
                     );
                 }
@@ -302,8 +302,7 @@ void DrawSmallText(
                 );
                 SDL_SetTextureAlphaMod(small_text_texture, style->color.a);
                 SDL_RenderCopyF(
-                    global_app.renderer, small_text_texture, &icon_src,
-                    &text_dst
+                    game_app.renderer, small_text_texture, &icon_src, &text_dst
                 );
             } else if (arg0 == 1) {
                 // draw joystick icons
@@ -311,7 +310,7 @@ void DrawSmallText(
 #if defined(__PSP__)
                 controller_type = 1;
 #else
-                switch (SDL_GameControllerGetType(global_app.joystick.device)) {
+                switch (SDL_GameControllerGetType(game_app.joystick.device)) {
                 case SDL_CONTROLLER_TYPE_XBOX360:
                 case SDL_CONTROLLER_TYPE_XBOXONE:
                     controller_type = 0;
@@ -329,7 +328,7 @@ void DrawSmallText(
                 }
                 SDL_SetTextureAlphaMod(input_prompt_texture, style->color.a);
                 SDL_RenderCopyF(
-                    global_app.renderer, input_prompt_texture, &icon_src,
+                    game_app.renderer, input_prompt_texture, &icon_src,
                     &icon_dst
                 );
             }
@@ -351,7 +350,7 @@ void DrawSmallText(
                     text_dst.w, text_dst.h
                 };
                 SDL_RenderCopyF(
-                    global_app.renderer, small_text_texture, &text_src,
+                    game_app.renderer, small_text_texture, &text_src,
                     &shadow_dst
                 );
             }
@@ -361,7 +360,7 @@ void DrawSmallText(
             );
             SDL_SetTextureAlphaMod(small_text_texture, style->color.a);
             SDL_RenderCopyF(
-                global_app.renderer, small_text_texture, &text_src, &text_dst
+                game_app.renderer, small_text_texture, &text_src, &text_dst
             );
         }
         text_dst.x += SMALL_TEXT_WIDTH * style->size + style->char_space;

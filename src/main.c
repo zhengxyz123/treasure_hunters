@@ -20,13 +20,17 @@
   THE SOFTWARE.
 */
 
-#include "map/tilemap.h"
+#include "entities/base.h"
+#include "global.h"
+#include "map.h"
 #include "resources/loader.h"
 #include "scenes/setting_menu.h"
 #include "scenes/start_menu.h"
 #include "scenes/world.h"
 #include "setting.h"
 #include "ui/ui.h"
+#include <SDL.h>
+#include <SDL_image.h>
 #if defined(__WIN32__)
     #include <Windows.h>
 #endif
@@ -36,13 +40,13 @@
 #define FRAMETIMER_IMPLEMENTATION
 #include "frametimer.h"
 
-GameApp global_app = {
+GameApp game_app = {
     .status = GAMESTATUS_NORMAL,
     .joystick = {.available = 0, .which = INT_MIN},
     .should_quit = 0,
     .window_focused = 1
 };
-Setting global_setting = {
+Setting game_setting = {
 #if !defined(__PSP__)
     .fullscreen = 0,
 #endif
@@ -85,17 +89,17 @@ int main(int argc, char* argv[]) {
     Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 2048);
 
     // setup global_app
-    global_app.argc = argc;
-    global_app.argv = argv;
-    global_app.exec_path = (char*)calloc(PATH_MAX, sizeof(char));
+    game_app.argc = argc;
+    game_app.argv = argv;
+    game_app.exec_path = (char*)calloc(PATH_MAX, sizeof(char));
     char* base_path = SDL_GetBasePath();
-    strcpy(global_app.exec_path, base_path);
+    strcpy(game_app.exec_path, base_path);
     SDL_free(base_path);
     char* rpkg_path = calloc(PATH_MAX, sizeof(char));
-    strcpy(rpkg_path, global_app.exec_path);
+    strcpy(rpkg_path, game_app.exec_path);
     strcat(rpkg_path, "assets.rpkg");
-    global_app.assets_pack = LoadRespack(rpkg_path);
-    if (!global_app.assets_pack) {
+    game_app.assets_pack = LoadRespack(rpkg_path);
+    if (!game_app.assets_pack) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "%s is not a resource pack", rpkg_path
         );
@@ -106,7 +110,7 @@ int main(int argc, char* argv[]) {
         );
         free(rpkg_path);
         free(message);
-        free(global_app.exec_path);
+        free(game_app.exec_path);
         Mix_CloseAudio();
         Mix_Quit();
         IMG_Quit();
@@ -117,17 +121,17 @@ int main(int argc, char* argv[]) {
 
     // create the window, renderer and set the window icon
 #if defined(__PSP__)
-    global_app.window = SDL_CreateWindow(
+    game_app.window = SDL_CreateWindow(
         "Treasure Hunters", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         480, 272, 0
     );
 #else
-    global_app.window = SDL_CreateWindow(
+    game_app.window = SDL_CreateWindow(
         "Treasure Hunters", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640,
         480, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
 #endif
-    if (global_app.window == NULL) {
+    if (game_app.window == NULL) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "SDL_CreateWindow(): %s\n", SDL_GetError()
         );
@@ -135,30 +139,30 @@ int main(int argc, char* argv[]) {
     }
 #if !defined(__PSP__)
     SDL_Surface* icon_image = LoadSurface("images/icon.png");
-    SDL_SetWindowIcon(global_app.window, icon_image);
-    SDL_SetWindowMinimumSize(global_app.window, 640, 480);
+    SDL_SetWindowIcon(game_app.window, icon_image);
+    SDL_SetWindowMinimumSize(game_app.window, 640, 480);
 #endif
-    global_app.renderer = SDL_CreateRenderer(
-        global_app.window, -1,
+    game_app.renderer = SDL_CreateRenderer(
+        game_app.window, -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC |
             SDL_RENDERER_TARGETTEXTURE
     );
-    SDL_RenderSetVSync(global_app.renderer, 1);
-    SDL_SetRenderDrawBlendMode(global_app.renderer, SDL_BLENDMODE_BLEND);
+    SDL_RenderSetVSync(game_app.renderer, 1);
+    SDL_SetRenderDrawBlendMode(game_app.renderer, SDL_BLENDMODE_BLEND);
 
     // restore previous settings
     InitSetting();
 #if defined(__PSP__)
     Mix_Volume(
-        MUSIC_CHANNEL, global_setting.mute_all ? 0 : global_setting.music_volume
+        MUSIC_CHANNEL, game_setting.mute_all ? 0 : game_setting.music_volume
     );
     Mix_Volume(
-        SFX_CHANNEL, global_setting.mute_all ? 0 : global_setting.sfx_volume
+        SFX_CHANNEL, game_setting.mute_all ? 0 : game_setting.sfx_volume
     );
 #else
-    SDL_SetWindowFullscreen(global_app.window, global_setting.fullscreen);
-    Mix_Volume(MUSIC_CHANNEL, global_setting.music_volume);
-    Mix_Volume(SFX_CHANNEL, global_setting.sfx_volume);
+    SDL_SetWindowFullscreen(game_app.window, game_setting.fullscreen);
+    Mix_Volume(MUSIC_CHANNEL, game_setting.music_volume);
+    Mix_Volume(SFX_CHANNEL, game_setting.sfx_volume);
 #endif
 
     /* setup game engine */
@@ -166,46 +170,47 @@ int main(int argc, char* argv[]) {
     scene_array[SETTING_SCENE] = &setting_scene;
     scene_array[WORLD_SCENE] = &world_scene;
     InitMapSystem();
+    InitEntitySystem();
     InitSceneSystem();
     InitUISystem();
 
     // game loop
-    global_app.timer = frametimer_create(NULL);
-    frametimer_lock_rate(global_app.timer, 60);
-    while (!global_app.should_quit) {
-        float dt = frametimer_update(global_app.timer);
+    game_app.timer = frametimer_create(NULL);
+    frametimer_lock_rate(game_app.timer, 60);
+    while (!game_app.should_quit) {
+        float dt = frametimer_update(game_app.timer);
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-            case SDL_WINDOWEVENT:
 #if !defined(__PSP__)
+            case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-                    global_app.window_focused = 0;
-                    if (global_setting.mute_when_unfocused) {
+                    game_app.window_focused = 0;
+                    if (game_setting.mute_when_unfocused) {
                         Mix_Volume(MUSIC_CHANNEL, 0);
                         Mix_Volume(SFX_CHANNEL, 0);
                     }
                 } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                    global_app.window_focused = 1;
-                    if (global_setting.mute_when_unfocused) {
-                        Mix_Volume(MUSIC_CHANNEL, global_setting.music_volume);
-                        Mix_Volume(SFX_CHANNEL, global_setting.sfx_volume);
+                    game_app.window_focused = 1;
+                    if (game_setting.mute_when_unfocused) {
+                        Mix_Volume(MUSIC_CHANNEL, game_setting.music_volume);
+                        Mix_Volume(SFX_CHANNEL, game_setting.sfx_volume);
                     }
                 } else if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                     ClearWidgets();
                 }
-#endif
                 break;
+#endif
             case SDL_CONTROLLERDEVICEADDED:
-                if (!global_app.joystick.available) {
-                    global_app.joystick.device =
+                if (!game_app.joystick.available) {
+                    game_app.joystick.device =
                         SDL_GameControllerOpen(event.cdevice.which);
-                    if (global_app.joystick.device != NULL) {
-                        global_app.joystick.available = 1;
+                    if (game_app.joystick.device != NULL) {
+                        game_app.joystick.available = 1;
                         SDL_Joystick* joystick = SDL_GameControllerGetJoystick(
-                            global_app.joystick.device
+                            game_app.joystick.device
                         );
-                        global_app.joystick.which =
+                        game_app.joystick.which =
                             SDL_JoystickInstanceID(joystick);
                         SDL_ShowCursor(SDL_DISABLE);
                     } else {
@@ -217,42 +222,43 @@ int main(int argc, char* argv[]) {
                 }
                 break;
             case SDL_CONTROLLERDEVICEREMOVED:
-                if (event.jdevice.which == global_app.joystick.which) {
-                    global_app.joystick.available = 0;
-                    SDL_GameControllerClose(global_app.joystick.device);
-                    global_app.joystick.device = NULL;
+                if (event.jdevice.which == game_app.joystick.which) {
+                    game_app.joystick.available = 0;
+                    SDL_GameControllerClose(game_app.joystick.device);
+                    game_app.joystick.device = NULL;
                     SDL_ShowCursor(SDL_ENABLE);
                 }
                 break;
             case SDL_QUIT:
-                global_app.should_quit = 1;
+                game_app.should_quit = 1;
                 break;
             }
             HandleWidgetEvent(&event);
             HandleSceneEvent(&event);
         }
-        SDL_RenderClear(global_app.renderer);
+        SDL_RenderClear(game_app.renderer);
         TickWidgets(dt);
         TickScene(dt);
-        SDL_RenderPresent(global_app.renderer);
+        SDL_RenderPresent(game_app.renderer);
     }
 
     // cleanup
-    frametimer_destroy(global_app.timer);
-    if (global_app.joystick.device != NULL) {
-        SDL_GameControllerClose(global_app.joystick.device);
+    frametimer_destroy(game_app.timer);
+    if (game_app.joystick.device != NULL) {
+        SDL_GameControllerClose(game_app.joystick.device);
     }
     SaveSetting();
     QuitMapSystem();
+    QuitEntitySystem();
     QuitSceneSystem();
     QuitUISystem();
-    FreeRespack(global_app.assets_pack);
-    free(global_app.exec_path);
+    FreeRespack(game_app.assets_pack);
+    free(game_app.exec_path);
 #if !defined(__PSP__)
     SDL_FreeSurface(icon_image);
 #endif
-    SDL_DestroyRenderer(global_app.renderer);
-    SDL_DestroyWindow(global_app.window);
+    SDL_DestroyRenderer(game_app.renderer);
+    SDL_DestroyWindow(game_app.window);
     IMG_Quit();
     Mix_CloseAudio();
     Mix_Quit();

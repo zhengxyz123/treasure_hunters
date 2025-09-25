@@ -20,10 +20,10 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SCENE_H_
-#define _TH_SCENE_H_
+#ifndef _TH_SCENE_SCENE_H_
+#define _TH_SCENE_SCENE_H_
 
-#include "../global.h"
+#include <SDL.h>
 
 #define MAX_SCENE 16
 

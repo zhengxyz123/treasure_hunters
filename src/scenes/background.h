@@ -20,10 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SUBSCENE_H_
-#define _TH_SUBSCENE_H_
-
-#include "../global.h"
+#ifndef _TH_SCENE_BACKGROUND_H_
+#define _TH_SCENE_BACKGROUND_H_
 
 void InitBackground();
 void QuitBackground();

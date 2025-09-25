@@ -20,10 +20,9 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SPRITE_H_
-#define _TH_SPRITE_H_
+#ifndef _TH_UI_SPRITE_H_
+#define _TH_UI_SPRITE_H_
 
-#include "../global.h"
 #include "animation.h"
 
 typedef enum {
@@ -46,9 +45,9 @@ typedef struct {
 
 Sprite* CreateTextureSprite(SDL_Texture* texture);
 Sprite* CreateAnimationSprite(Animation* animation);
+void FreeSprite(Sprite* sprite);
 void SetSpritePosition(Sprite* sprite, float x, float y);
 void SetSpriteSize(Sprite* sprite, float w, float h);
 void DrawSprite(Sprite* sprite);
-void FreeSprite(Sprite* sprite);
 
 #endif

@@ -20,33 +20,35 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_UI_ANIMATION_H_
-#define _TH_UI_ANIMATION_H_
+#include "player.h"
+#include "../resources/loader.h"
+#include "base.h"
+#include <assert.h>
 
-#include <SDL.h>
+SDL_Texture* captain_texture = NULL;
 
-typedef struct {
-    float duration;
-    SDL_Rect area;
-} AnimationClip;
+void InitPlayerTexture() {
+    captain_texture = LoadTexture("images/characters/captain.png");
+}
 
-typedef struct {
-    int count;
-    int paused;
-    int now_clip;
-    float dt;
-    SDL_Texture* texture;
-    AnimationClip* clip;
-} Animation;
+void FreePlayerTexture() {
+    SDL_DestroyTexture(captain_texture);
+}
 
-Animation* CreateAnimation(
-    SDL_Texture* texture, float duration, SDL_Rect* rect, int count
-);
-void FreeAnimation(Animation* animation);
-void DrawAnimationEx(
-    Animation* animation, float x, float y, float scale, double angle,
-    SDL_FPoint* center, SDL_RendererFlip flip
-);
-void DrawAnimation(Animation* animation, float x, float y, float scale);
+Entity* CreatePLayerEntity() {
+    Entity* player = calloc(1, sizeof(Entity));
+    player->type = ENTITY_TYPE_PLAYER;
+    PlayerUserData* data = calloc(1, sizeof(PlayerUserData));
+    player->userdata = data;
+    return player;
+}
 
-#endif
+void DrawPlayerEntity(Entity* player) {
+    assert(player->type == ENTITY_TYPE_PLAYER);
+    // PlayerUserData* data = (PlayerUserData*)player->userdata;
+}
+
+void DestroyPlayerEntity(Entity* player) {
+    free(player->userdata);
+    free(player);
+}

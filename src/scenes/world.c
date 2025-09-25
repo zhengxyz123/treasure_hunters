@@ -22,12 +22,10 @@
 
 #include "world.h"
 #include "../global.h"
-#include "../map/tilemap.h"
-#include "../setting.h"
+#include "../map.h"
 #include "background.h"
 
-extern GameApp global_app;
-extern Setting global_setting;
+extern GameApp game_app;
 
 Scene world_scene = {
     .init = WorldSceneInit,
@@ -37,29 +35,20 @@ Scene world_scene = {
     .on_cbutton_down = WorldSceneOnControllerButtonDown
 };
 
-Tilemap* map;
+Map* map;
 SDL_Point offset = {0, 0};
 
 void WorldSceneInit() {
-    map = LoadTilemap("maps/test.tmx");
+    map = LoadMap("maps/start.tmx");
 }
 
 void WorldSceneTick(float dt) {
     DrawBackground(dt);
-#if defined(__PSP__)
-    TilemapDrawLayer(map, TILEMAP_LAYERGROUP_BACK, &offset);
-#else
-    int x = offset.x;
-    int y = offset.y;
-    SDL_RenderCopy(
-        global_app.renderer, map->texture.back, NULL,
-        &(SDL_Rect){x, y, 32 * 30, 32 * 20}
-    );
-#endif
+    MapDrawLayer(map, TILEMAP_LAYERGROUP_BACK, &offset);
 }
 
 void worldSceneFree() {
-    FreeTilemap(map);
+    FreeMap(map);
 }
 
 void WorldSceneOnKeyDown(SDL_KeyCode key) {

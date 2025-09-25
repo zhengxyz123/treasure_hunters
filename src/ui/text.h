@@ -20,10 +20,10 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_TEXT_H_
-#define _TH_TEXT_H_
+#ifndef _TH_UI_TEXT_H_
+#define _TH_UI_TEXT_H_
 
-#include "../global.h"
+#include <SDL.h>
 
 #define BIG_TEXT_WIDTH 10
 #define BIG_TEXT_HEIGHT 11

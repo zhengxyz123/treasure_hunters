@@ -21,10 +21,11 @@
 */
 
 #include "background.h"
+#include "../global.h"
 #include "../resources/loader.h"
 #include "../ui/animation.h"
 
-extern GameApp global_app;
+extern GameApp game_app;
 
 // for DrawBackground()
 SDL_Texture* background_texture = NULL;
@@ -91,8 +92,8 @@ void QuitBackground() {
 
 void DrawBackground(float dt) {
     int win_w, win_h, img_w, img_h;
-    SDL_GetWindowSize(global_app.window, &win_w, &win_h);
-    SDL_RenderCopyF(global_app.renderer, background_texture, NULL, NULL);
+    SDL_GetWindowSize(game_app.window, &win_w, &win_h);
+    SDL_RenderCopyF(game_app.renderer, background_texture, NULL, NULL);
     // draw small clouds
     SDL_QueryTexture(
         small_cloud_texture[small_cloud_index], NULL, NULL, &img_w, &img_h
@@ -104,7 +105,7 @@ void DrawBackground(float dt) {
         img_w * small_cloud_scale, img_h * small_cloud_scale
     };
     SDL_RenderCopyF(
-        global_app.renderer, small_cloud_texture[small_cloud_index], NULL,
+        game_app.renderer, small_cloud_texture[small_cloud_index], NULL,
         &small_cloud_dst
     );
     if (small_cloud_x > win_w) {
@@ -128,7 +129,7 @@ void DrawBackground(float dt) {
     for (float x = big_cloud_x; x < win_w; x += img_w * big_cloud_scale) {
         big_cloud_dst.x = x;
         SDL_RenderCopyF(
-            global_app.renderer, big_cloud_texture, NULL, &big_cloud_dst
+            game_app.renderer, big_cloud_texture, NULL, &big_cloud_dst
         );
     }
     // draw water reflects

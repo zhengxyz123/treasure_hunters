@@ -26,7 +26,7 @@
 #include "background.h"
 #include <assert.h>
 
-extern GameApp global_app;
+extern GameApp game_app;
 
 Scene* scene_array[MAX_SCENE];
 SceneID now_scene = START_SCENE;
