@@ -29,8 +29,7 @@ extern GameApp game_app;
 
 SDL_Surface* LoadSurfaceFromMem(void* content, size_t size) {
     SDL_RWops* raw_image = SDL_RWFromConstMem(content, size);
-    SDL_Surface* surface = IMG_Load_RW(raw_image, 1);
-    return surface;
+    return IMG_Load_RW(raw_image, 1);
 }
 
 SDL_Surface* LoadSurface(char* filename) {
@@ -46,8 +45,7 @@ SDL_Surface* LoadSurface(char* filename) {
 
 SDL_Texture* LoadTextureFromMem(void* content, size_t size) {
     SDL_RWops* raw_image = SDL_RWFromConstMem(content, size);
-    SDL_Texture* texture = IMG_LoadTexture_RW(game_app.renderer, raw_image, 1);
-    return texture;
+    return IMG_LoadTexture_RW(game_app.renderer, raw_image, 1);
 }
 
 SDL_Texture* LoadTexture(char* filename) {
@@ -63,8 +61,7 @@ SDL_Texture* LoadTexture(char* filename) {
 
 Mix_Chunk* LoadSoundFromMem(void* content, size_t size) {
     SDL_RWops* raw_music = SDL_RWFromConstMem(content, size);
-    Mix_Chunk* chunk = Mix_LoadWAV_RW(raw_music, 1);
-    return chunk;
+    return Mix_LoadWAV_RW(raw_music, 1);
 }
 
 Mix_Chunk* LoadSound(char* filename) {
@@ -77,3 +74,25 @@ Mix_Chunk* LoadSound(char* filename) {
     free(content);
     return chunk;
 }
+
+// TTF_Font* LoadFontFromMem(void* content, size_t size, int ptsize, long index) {
+//     SDL_RWops* raw_font = SDL_RWFromConstMem(content, size);
+//     TTF_Font* font = NULL;
+//     if (index < 0) {
+//         font = TTF_OpenFontRW(raw_font, 1, ptsize);
+//     } else {
+//         font = TTF_OpenFontIndexRW(raw_font, 1, ptsize, index);
+//     }
+//     return font;
+// }
+
+// TTF_Font* LoadFont(char* filename, int ptsize, long index) {
+//     size_t size;
+//     void* content = RespackGetItem(game_app.assets_pack, filename, &size);
+//     if (size == 0) {
+//         return NULL;
+//     }
+//     TTF_Font* font = LoadFontFromMem(content, size, ptsize, index);
+//     free(content);
+//     return font;
+// }

@@ -28,9 +28,11 @@
 #include "scenes/start_menu.h"
 #include "scenes/world.h"
 #include "setting.h"
+#include "translation.h"
 #include "ui/ui.h"
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 #if defined(__WIN32__)
     #include <Windows.h>
 #endif
@@ -63,7 +65,7 @@ Setting game_setting = {
 int main(int argc, char* argv[]) {
     srand((unsigned)time(NULL));
 
-    // initialise SDL, SDL_image and SDL_mixer
+    // initialise SDL, SDL_image, SDL_mixer and SDL_ttf
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "SDL_Init(): %s\n", SDL_GetError()
@@ -87,6 +89,11 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 2048);
+    if (TTF_Init() != 0) {
+        SDL_LogError(
+            SDL_LOG_CATEGORY_ERROR, "TTF_Init(): %s\n", SDL_GetError()
+        );
+    }
 
     // setup global_app
     game_app.argc = argc;
@@ -111,10 +118,6 @@ int main(int argc, char* argv[]) {
         free(rpkg_path);
         free(message);
         free(game_app.exec_path);
-        Mix_CloseAudio();
-        Mix_Quit();
-        IMG_Quit();
-        SDL_Quit();
         return 1;
     }
     free(rpkg_path);
@@ -169,6 +172,7 @@ int main(int argc, char* argv[]) {
     scene_array[START_SCENE] = &start_scene;
     scene_array[SETTING_SCENE] = &setting_scene;
     scene_array[WORLD_SCENE] = &world_scene;
+    InitTranslation();
     InitMapSystem();
     InitEntitySystem();
     InitSceneSystem();
@@ -248,6 +252,7 @@ int main(int argc, char* argv[]) {
         SDL_GameControllerClose(game_app.joystick.device);
     }
     SaveSetting();
+    QuitTranslation();
     QuitMapSystem();
     QuitEntitySystem();
     QuitSceneSystem();
@@ -262,6 +267,7 @@ int main(int argc, char* argv[]) {
     IMG_Quit();
     Mix_CloseAudio();
     Mix_Quit();
+    TTF_Quit();
     SDL_Quit();
     return 0;
 }

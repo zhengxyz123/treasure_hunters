@@ -31,7 +31,8 @@
 #include "../global.h"
 #include "../resources/loader.h"
 #include "frametimer.h"
-#include "text.h"
+#include "text/text.h"
+#include "text/bitmap.h"
 #include <assert.h>
 #include <stdlib.h>
 
@@ -63,7 +64,7 @@ SDL_Texture* slider_texture = NULL;
 Mix_Chunk* click_sound = NULL;
 Mix_Chunk* switch_sound = NULL;
 
-TextStyle normal_text_style = {
+BitmapTextStyle normal_text_style = {
     .size = 1.0,
     .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
     .color = {0, 0, 0, 255},
@@ -71,7 +72,7 @@ TextStyle normal_text_style = {
     .shadow_offset = {1, 1},
     .shadow_color = {85, 85, 85, 255}
 };
-TextStyle hovering_text_style = {
+BitmapTextStyle hovering_text_style = {
     .size = 1.0,
     .align = TEXT_ALIGN_LEFT,
     .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
@@ -80,7 +81,7 @@ TextStyle hovering_text_style = {
     .shadow_offset = {1, 1},
     .shadow_color = {4, 40, 13, 255}
 };
-TextStyle disabled_text_style = {
+BitmapTextStyle disabled_text_style = {
     .size = 1.0,
     .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
     .color = {170, 170, 170, 255},
@@ -260,16 +261,16 @@ int WidgetIsHovering() {
 }
 
 void CalcButtonTextSize(char* str, float* w, float* h) {
-    CalcSmallTextSize(str, &normal_text_style, w, h);
+    CalcSmallBitmapTextSize(str, &normal_text_style, w, h);
 }
 
 int WidgetButton(float x, float y, char* str, int disabled) {
     ClearStates();
     // draw widget
     float text_w, text_h;
-    CalcSmallTextSize(str, &normal_text_style, &text_w, &text_h);
+    CalcSmallBitmapTextSize(str, &normal_text_style, &text_w, &text_h);
     if (disabled) {
-        DrawSmallText(x, y, &disabled_text_style, str);
+        DrawSmallBitmapText(x, y, &disabled_text_style, str);
         return 0;
     }
     // handle events
@@ -278,10 +279,10 @@ int WidgetButton(float x, float y, char* str, int disabled) {
         AppendWidget(&box);
     }
     if (SDL_PointInFRect(&ctx.mouse_pos, &box)) {
-        DrawSmallText(x, y, &hovering_text_style, str);
+        DrawSmallBitmapText(x, y, &hovering_text_style, str);
         ctx.is_hovering = 1;
     } else {
-        DrawSmallText(x, y, &normal_text_style, str);
+        DrawSmallBitmapText(x, y, &normal_text_style, str);
         return 0;
     }
     if (ctx.mouse_clicked && SDL_PointInFRect(&ctx.mouse_clicked_pos, &box)) {
@@ -312,14 +313,14 @@ int WidgetOption(float x, float y, int* data) {
     }
     // handle events
     if (SDL_PointInFRect(&ctx.mouse_pos, &button_dst)) {
-        DrawSmallText(
-            x, y, &(TextStyle){.size = size, .color = {0, 0, 0, 128}}, "{0,%d}",
+        DrawSmallBitmapText(
+            x, y, &(BitmapTextStyle){.size = size, .color = {0, 0, 0, 128}}, "{0,%d}",
             *data == 1 ? ICON_TICK : ICON_CROSS
         );
         ctx.is_hovering = 1;
     } else {
-        DrawSmallText(
-            x, y, &(TextStyle){.size = size, .color = {0, 0, 0, 255}}, "{0,%d}",
+        DrawSmallBitmapText(
+            x, y, &(BitmapTextStyle){.size = size, .color = {0, 0, 0, 255}}, "{0,%d}",
             *data == 1 ? ICON_TICK : ICON_CROSS
         );
     }

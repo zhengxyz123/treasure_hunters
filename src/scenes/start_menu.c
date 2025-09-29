@@ -22,7 +22,8 @@
 
 #include "start_menu.h"
 #include "../global.h"
-#include "../ui/text.h"
+#include "../ui/text/text.h"
+#include "../ui/text/bitmap.h"
 #include "../ui/widget.h"
 #include "background.h"
 
@@ -31,7 +32,7 @@ extern GameApp game_app;
 Scene start_scene = {
     .init = StartSceneInit, .tick = StartSceneTick, .free = StartSceneFree
 };
-TextStyle title_text_style = {
+BitmapTextStyle title_text_style = {
     1.0,
     2,
     4,
@@ -60,7 +61,7 @@ void StartSceneTick(float dt) {
     title_text_style.size =
         0.11 * win_h / 15 * 96 > win_w ? win_w / 98.0 : 0.11 * win_h / 15;
 #endif
-    DrawBigText(
+    DrawBigBitmapText(
         win_w / 2.0, 0.2 * win_h, &title_text_style, "TREASURE\nHUNTERS"
     );
     float text_w, text_h;

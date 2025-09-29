@@ -21,15 +21,18 @@
 */
 
 #include "ui.h"
-#include "text.h"
+#include "text/bitmap.h"
+#include "text/ttf.h"
 #include "widget.h"
 
 void InitUISystem() {
-    InitText();
+    InitBitmapText();
+    InitTTFText();
     InitWidget();
 }
 
 void QuitUISystem() {
-    QuitText();
+    QuitDitmapText();
+    QuitTTFText();
     QuitWidget();
 }

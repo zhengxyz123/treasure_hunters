@@ -37,15 +37,15 @@ typedef struct {
     char magic[4];
     uint8_t version;
     uint16_t entry_count;
-    uint64_t key_index_offset;
-    uint64_t value_index_offset;
+    uint32_t key_index_offset;
+    uint32_t value_index_offset;
 } RespackHeader;
 
 typedef struct {
-    uint64_t key_offset;
+    uint32_t key_offset;
     uint8_t key_length;
     uint32_t key_hash;
-    uint64_t value_offset;
+    uint32_t value_offset;
     uint32_t value_length;
 } RespackEntry;
 

@@ -21,6 +21,7 @@
 */
 
 #include "world.h"
+#include "../ui/text/ttf.h"
 #include "../global.h"
 #include "../map.h"
 #include "background.h"
@@ -45,6 +46,7 @@ void WorldSceneInit() {
 void WorldSceneTick(float dt) {
     DrawBackground(dt);
     MapDrawLayer(map, TILEMAP_LAYERGROUP_BACK, &offset);
+    DrawText(5, 0, "This is a test map\nUse ←→↑↓ to move");
 }
 
 void worldSceneFree() {

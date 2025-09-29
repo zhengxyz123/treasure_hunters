@@ -50,8 +50,7 @@ uint32_t fnv1a_32(char* str, uint32_t hval) {
 
 Respack* LoadRespack(char* filename) {
     Respack* rpkg = calloc(1, sizeof(Respack));
-    FILE* fp = fopen(filename, "rb");
-    rpkg->fp = fp;
+    rpkg->fp = fopen(filename, "rb");
     if (!rpkg->fp) {
         free(rpkg);
         return NULL;
@@ -77,8 +76,8 @@ Respack* LoadRespack(char* filename) {
 error1:
     free(rpkg->entries);
 error0:
+    fclose(rpkg->fp);
     free(rpkg);
-    fclose(fp);
     return NULL;
 }
 
@@ -126,9 +125,6 @@ int RespackHasItem(Respack* rpkg, char* key, size_t* index) {
 
   If `length==0` or the return value is `NULL`, the asset may not exist or the
   resource pack format may be invalid.
-
-  NOTE: Please do not use this function directly, use `Load*` function in
-  `resources/loader.h` instead.
 */
 void* RespackGetItem(Respack* rpkg, char* key, size_t* length) {
     size_t index;

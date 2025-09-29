@@ -43,18 +43,18 @@ class RespackHeader(ctypes.LittleEndianStructure):
         ("magic", ctypes.c_char * 4),
         ("version", ctypes.c_uint8),
         ("entry_count", ctypes.c_uint16),
-        ("key_index_offset", ctypes.c_uint64),
-        ("value_index_offset", ctypes.c_uint64),
+        ("key_index_offset", ctypes.c_uint32),
+        ("value_index_offset", ctypes.c_uint32),
     ]
 
 
 class RespackEntry(ctypes.LittleEndianStructure):
     _pack_ = 8
     _fields_ = [
-        ("key_offset", ctypes.c_uint64),
+        ("key_offset", ctypes.c_uint32),
         ("key_length", ctypes.c_uint8),
         ("key_hash", ctypes.c_uint32),
-        ("value_offset", ctypes.c_uint64),
+        ("value_offset", ctypes.c_uint32),
         ("value_length", ctypes.c_uint32),
     ]
 
@@ -159,8 +159,11 @@ def _subcmd_gen(args: argparse.Namespace) -> int:
     for root, _, files in Path(args.src).walk():
         for file in files:
             key = (root / file).relative_to(Path(args.src))
-            if key.match("*.tsx") or key.match("*.tiled-session"):
+            if key.match("*.ttc") or key.match("*.tsx") or key.match("*.tiled-session"):
                 continue
+            elif key.match("*.json"):
+                content = (root / file).read_text()
+                value = json.dumps(json.loads(content), separators=(",", ":"), ensure_ascii=False).encode()
             elif key.match("*.tmx"):
                 fd, map_path = tempfile.mkstemp()
                 os.close(fd)

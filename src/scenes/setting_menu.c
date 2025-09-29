@@ -23,7 +23,8 @@
 #include "setting_menu.h"
 #include "../global.h"
 #include "../setting.h"
-#include "../ui/text.h"
+#include "../ui/text/text.h"
+#include "../ui/text/bitmap.h"
 #include "background.h"
 #include <SDL_mixer.h>
 
@@ -60,24 +61,24 @@ SettingItem settings_array[] = {
     {SETTING_TYPE_BUTTON, "Reset settings", {.button = 1}},
     {SETTING_TYPE_BUTTON, "Back", {.button = 2}}
 };
-TextStyle subtitle_text_style = {
+BitmapTextStyle subtitle_text_style = {
     .size = 1.0,
     .color = {0, 0, 0, 255},
     .anchor = TEXT_ANCHOR_X_CENTER | TEXT_ANCHOR_Y_TOP
 };
-TextStyle item_text_style_normal = {
+BitmapTextStyle item_text_style_normal = {
     .size = 1.0,
     .color = {0, 0, 0, 255},
     .align = TEXT_ALIGN_RIGHT,
     .anchor = TEXT_ANCHOR_X_RIGHT | TEXT_ANCHOR_Y_TOP
 };
-TextStyle item_text_style_active = {
+BitmapTextStyle item_text_style_active = {
     .size = 1.0,
     .color = {0, 0, 0, 128},
     .align = TEXT_ALIGN_RIGHT,
     .anchor = TEXT_ANCHOR_X_RIGHT | TEXT_ANCHOR_Y_TOP
 };
-TextStyle hint_style = {
+BitmapTextStyle hint_style = {
 #if defined(__PSP__)
     .size = 1.4,
 #else
@@ -107,7 +108,7 @@ void SettingSceneTick(float dt) {
         2.25 * sizeof(settings_array) / sizeof(SettingItem) - 1.25;
     float max_text_w;
     item_text_style_normal.size = 1.0;
-    CalcSmallTextSize(
+    CalcSmallBitmapTextSize(
         settings_array[3].name, &item_text_style_normal, &max_text_w, NULL
     );
 #if defined(__PSP__)
@@ -151,7 +152,7 @@ void SettingSceneTick(float dt) {
                 text_h + game_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
             break;
         case SETTING_TYPE_OPTION:
-            CalcSmallTextSize(
+            CalcSmallBitmapTextSize(
                 settings_array[i].name, &item_text_style_normal, &text_w,
                 &text_h
             );
@@ -161,7 +162,7 @@ void SettingSceneTick(float dt) {
                     (text_h - game_app.interface_size * SMALL_TEXT_HEIGHT) / 2,
                 settings_array[i].data.option
             );
-            DrawSmallText(
+            DrawSmallBitmapText(
                 win_w / 2.0 - 10, widget_y,
                 WidgetIsHovering() ? &item_text_style_active
                                    : &item_text_style_normal,
@@ -171,7 +172,7 @@ void SettingSceneTick(float dt) {
                 text_h + game_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
             break;
         case SETTING_TYPE_SLIDER:
-            CalcSmallTextSize(
+            CalcSmallBitmapTextSize(
                 settings_array[i].name, &item_text_style_normal, &text_w,
                 &text_h
             );
@@ -182,7 +183,7 @@ void SettingSceneTick(float dt) {
                 slider_w, SMALL_TEXT_HEIGHT * game_app.interface_size,
                 settings_array[i].data.slider
             );
-            DrawSmallText(
+            DrawSmallBitmapText(
                 win_w / 2.0 - 10, widget_y,
                 WidgetIsHovering() ? &item_text_style_active
                                    : &item_text_style_normal,
@@ -192,10 +193,10 @@ void SettingSceneTick(float dt) {
                 text_h + game_app.interface_size * SMALL_TEXT_HEIGHT * 1.25;
             break;
         case SETTING_TYPE_SUBTITLE:
-            CalcSmallTextSize(
+            CalcSmallBitmapTextSize(
                 settings_array[i].name, &subtitle_text_style, &text_w, &text_h
             );
-            DrawSmallText(
+            DrawSmallBitmapText(
                 win_w / 2.0, widget_y, &subtitle_text_style,
                 settings_array[i].name
             );
@@ -206,11 +207,11 @@ void SettingSceneTick(float dt) {
     }
     WidgetEnd();
     if (game_app.joystick.available) {
-        DrawSmallText(
+        DrawSmallBitmapText(
             10, win_h - 5, &hint_style, "{1,10}{1,8}:Slider {1,1}:Back"
         );
     } else {
-        DrawSmallText(10, win_h - 5, &hint_style, "ESC:Back");
+        DrawSmallBitmapText(10, win_h - 5, &hint_style, "ESC:Back");
     }
     if (button_clicked == 1) {
         fullscreen_data = 0;
