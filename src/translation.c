@@ -21,6 +21,7 @@
 */
 
 #include "translation.h"
+#include "ui/text/ttf.h"
 #include "global.h"
 #include "resources/respack.h"
 #include <stdlib.h>
@@ -48,6 +49,15 @@ void QuitTranslation() {
 
 void TranslationSetLanguage(char* lang) {
     lang_pack = LoadTranslation(lang);
+    if (strcmp(lang, "zh_cn") == 0) {
+        ReloadFont(FONTFACE_NOTOCJK_SC);
+    } else if (strcmp(lang, "zh_tw") == 0) {
+        ReloadFont(FONTFACE_NOTOCJK_TC);
+    } else if (strcmp(lang, "zh_hk") == 0) {
+        ReloadFont(FONTFACE_NOTOCJK_HK);
+    } else {
+        ReloadFont(FONTFACE_NOTOCJK_JP);
+    }
 }
 
 int TranslationHasItem(char* key) {

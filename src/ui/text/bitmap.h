@@ -54,9 +54,6 @@ typedef enum {
 
 void InitBitmapText();
 void QuitDitmapText();
-void CalcBigBitmapTextSize(
-    char* str, BitmapTextStyle* style, float* w, float* h
-);
 float CalcBigBitmapTextWidthOneLine(char* str, BitmapTextStyle* style);
 void DrawBigBitmapText(
     float x, float y, BitmapTextStyle* style, const char* format, ...
@@ -64,9 +61,9 @@ void DrawBigBitmapText(
 void CalcSmallBitmapTextSize(
     char* str, BitmapTextStyle* style, float* w, float* h
 );
-float CalcSmalbitmaplTextWidthOneLine(char* str, BitmapTextStyle* style);
 void DrawSmallBitmapText(
     float x, float y, BitmapTextStyle* style, const char* format, ...
 );
+void DrawBitmapIcon(float x, float y, int size, SDL_Color color, IconID id);
 
 #endif

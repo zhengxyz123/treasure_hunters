@@ -1,10 +1,10 @@
 {
-    "start_scene.start_game": "Start Game",
+    "start_scene.new_game": "New Game",
     "start_scene.continue_game": "Continue Game",
     "start_scene.settings": "Setting",
     "start_scene.credits": "Credits",
     "start_scene.exit": "Exit",
-    "setting_scene.display": "display",
+    "setting_scene.display": "Display",
     "setting_scene.fullscreen": "Fullscreen",
     "setting_scene.sound": "Sound",
     "setting_scene.music_volume": "Music volume",

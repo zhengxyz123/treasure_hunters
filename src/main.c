@@ -177,6 +177,7 @@ int main(int argc, char* argv[]) {
     InitEntitySystem();
     InitSceneSystem();
     InitUISystem();
+    TranslationSetLanguage("en_us");
 
     // game loop
     game_app.timer = frametimer_create(NULL);

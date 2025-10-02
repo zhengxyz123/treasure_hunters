@@ -31,6 +31,7 @@ typedef enum {
     SETTING_TYPE_SLIDER,
     SETTING_TYPE_SUBTITLE,
     SETTING_TYPE_OPTION,
+    SETTING_TYPE_SPACE
 } SettingType;
 
 typedef struct {

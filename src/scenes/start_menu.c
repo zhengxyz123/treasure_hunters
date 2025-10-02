@@ -21,9 +21,11 @@
 */
 
 #include "start_menu.h"
+#include "../translation.h"
 #include "../global.h"
-#include "../ui/text/text.h"
 #include "../ui/text/bitmap.h"
+#include "../ui/text/text.h"
+#include "../ui/text/ttf.h"
 #include "../ui/widget.h"
 #include "background.h"
 
@@ -47,48 +49,49 @@ void StartSceneTick(float dt) {
     int win_w, win_h;
     SDL_GetWindowSize(game_app.window, &win_w, &win_h);
 #if defined(__PSP__)
-    game_app.interface_size = 2.0;
+    SetFontSize(18);
 #else
-    game_app.interface_size = 0.25 * win_h / (4 * 1.5 * SMALL_TEXT_HEIGHT);
-    if (game_app.interface_size < 2.0) {
-        game_app.interface_size = 2.0;
+    int text_size = 2.5 * win_h / (40 * 1.2);
+    if (text_size < 16) {
+        text_size = 16;
     }
+    SetFontSize(text_size);
 #endif
     DrawBackground(dt);
 #if defined(__PSP__)
     title_text_style.size = 2;
 #else
     title_text_style.size =
-        0.11 * win_h / 15 * 96 > win_w ? win_w / 98.0 : 0.11 * win_h / 15;
+        0.11 * win_h / 15 * 96 > win_w ? 0.98 * win_w : 0.11 * win_h / 15;
 #endif
     DrawBigBitmapText(
         win_w / 2.0, 0.2 * win_h, &title_text_style, "TREASURE\nHUNTERS"
     );
-    float text_w, text_h;
+    int text_w, text_h;
     WidgetBegin();
-    CalcButtonTextSize("Start Game", &text_w, &text_h);
+    MeasureTextSize(TransaltionGetText("start_scene.new_game"), &text_w, &text_h);
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 - 2.5 * text_h, "Start Game", 0
+            (win_w - text_w) / 2.0, win_h / 2.0 - 1.7 * text_h, TransaltionGetText("start_scene.new_game"), 0
         )) {
         SwitchScene(WORLD_SCENE);
     }
-    CalcButtonTextSize("Continue Game", &text_w, &text_h);
+    MeasureTextSize(TransaltionGetText("start_scene.continue_game"), &text_w, &text_h);
     WidgetButton(
-        (win_w - text_w) / 2.0, win_h / 2.0 - text_h, "Continue Game", 1
+        (win_w - text_w) / 2.0, win_h / 2.0 - 0.6 * text_h, TransaltionGetText("start_scene.continue_game"), 1
     );
-    CalcButtonTextSize("Settings", &text_w, &text_h);
+    MeasureTextSize(TransaltionGetText("start_scene.settings"), &text_w, &text_h);
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 + 0.5 * text_h, "Settings", 0
+            (win_w - text_w) / 2.0, win_h / 2.0 + 0.5 * text_h, TransaltionGetText("start_scene.settings"), 0
         )) {
         SwitchScene(SETTING_SCENE);
     }
-    CalcButtonTextSize("Credits", &text_w, &text_h);
+    MeasureTextSize(TransaltionGetText("start_scene.credits"), &text_w, &text_h);
     WidgetButton(
-        (win_w - text_w) / 2.0, win_h / 2.0 + 2 * text_h, "Credits", 0
+        (win_w - text_w) / 2.0, win_h / 2.0 + 1.6 * text_h, TransaltionGetText("start_scene.credits"), 0
     );
-    CalcButtonTextSize("Exit", &text_w, &text_h);
+    MeasureTextSize(TransaltionGetText("start_scene.exit"), &text_w, &text_h);
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 + 3.5 * text_h, "Exit", 0
+            (win_w - text_w) / 2.0, win_h / 2.0 + 2.7 * text_h, TransaltionGetText("start_scene.exit"), 0
         )) {
         game_app.should_quit = 1;
     }

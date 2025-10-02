@@ -75,7 +75,8 @@ Mix_Chunk* LoadSound(char* filename) {
     return chunk;
 }
 
-// TTF_Font* LoadFontFromMem(void* content, size_t size, int ptsize, long index) {
+// TTF_Font* LoadFontFromMem(void* content, size_t size, int ptsize, long index)
+// {
 //     SDL_RWops* raw_font = SDL_RWFromConstMem(content, size);
 //     TTF_Font* font = NULL;
 //     if (index < 0) {

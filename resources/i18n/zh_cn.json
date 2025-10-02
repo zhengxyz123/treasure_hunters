@@ -1,5 +1,5 @@
 {
-    "start_scene.start_game": "开始游戏",
+    "start_scene.new_game": "新游戏",
     "start_scene.continue_game": "继续游戏",
     "start_scene.settings": "设置",
     "start_scene.credits": "关于",
@@ -7,10 +7,10 @@
     "setting_scene.display": "显示",
     "setting_scene.fullscreen": "全屏",
     "setting_scene.sound": "声音",
-    "setting_scene.music_volume": "音乐",
-    "setting_scene.sfx_volume": "音效",
+    "setting_scene.music_volume": "音乐音量",
+    "setting_scene.sfx_volume": "音效音量",
     "setting_scene.mute_all": "全部静音",
-    "setting_scene.mute_when_lost_focus": "失焦时静音",
+    "setting_scene.mute_when_lost_focus": "窗口失焦时静音",
     "setting_scene.bind_keys": "按键绑定",
     "setting_scene.reset_settings": "重置为默认值",
     "setting_scene.back": "返回"

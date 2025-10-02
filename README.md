@@ -13,7 +13,7 @@ cd treasure_hunters/
 
 ### Linux
 
-The `SDL2`, `SDL2_image` and `SDL2_mixer` package should be installed:
+The `SDL2`, `SDL2_image`, `SDL2_mixer` and `SDL2_ttf` package should be installed:
 
 ```bash
 # Arch Linux

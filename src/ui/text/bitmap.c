@@ -205,7 +205,7 @@ void CalcSmallBitmapTextSize(
     }
 }
 
-float CalcSmalbitmaplTextWidthOneLine(char* str, BitmapTextStyle* style) {
+float CalcSmalBitmapTextWidthOneLine(char* str, BitmapTextStyle* style) {
     float w = 0;
     for (int i = 0; str[i] != '\n' && str[i] != '\0'; ++i) {
         if (str[i] == '{') {
@@ -238,7 +238,7 @@ void DrawSmallBitmapText(
 #endif
     va_end(args);
     float text_w, text_h;
-    float dx = 0, line_w = CalcSmalbitmaplTextWidthOneLine(str, style);
+    float dx = 0, line_w = CalcSmalBitmapTextWidthOneLine(str, style);
     CalcSmallBitmapTextSize(str, style, &text_w, &text_h);
     if (style->anchor & TEXT_ANCHOR_X_CENTER) {
         x -= text_w / 2;
@@ -264,7 +264,7 @@ void DrawSmallBitmapText(
     for (int i = 0; str[i] != '\0'; ++i) {
         if (str[i] == '\n') {
             // make a newline
-            line_w = CalcSmalbitmaplTextWidthOneLine(str + i + 1, style);
+            line_w = CalcSmalBitmapTextWidthOneLine(str + i + 1, style);
             if (style->align & TEXT_ALIGN_CENTER) {
                 dx = (text_w - line_w) / 2;
             } else if (style->align & TEXT_ALIGN_RIGHT) {
@@ -273,72 +273,6 @@ void DrawSmallBitmapText(
             text_dst.x = x + dx;
             text_dst.y += SMALL_TEXT_HEIGHT * style->size + style->line_space;
             continue;
-        } else if (str[i] == '{') {
-            // draw some special icons
-            int arg0, arg1;
-            sscanf(str + i, "{%d,%d}", &arg0, &arg1);
-            while (str[++i] != '}') {}
-            if (arg0 == 0) {
-                // draw some graphic icons like arrow, info symbol and so on
-                SDL_Rect icon_src = {
-                    (arg1 + 96) % 16 * SMALL_TEXT_WIDTH,
-                    (arg1 + 96) / 16 * SMALL_TEXT_HEIGHT, SMALL_TEXT_WIDTH,
-                    SMALL_TEXT_HEIGHT
-                };
-                if (style->has_shadow) {
-                    SDL_SetTextureColorMod(
-                        small_text_texture, style->shadow_color.r,
-                        style->shadow_color.g, style->shadow_color.b
-                    );
-                    SDL_SetTextureAlphaMod(
-                        small_text_texture, style->shadow_color.a
-                    );
-                    SDL_FRect shadow_dst = {
-                        text_dst.x + style->shadow_offset.x * style->size,
-                        text_dst.y + style->shadow_offset.y * style->size,
-                        text_dst.w, text_dst.h
-                    };
-                    SDL_RenderCopyF(
-                        game_app.renderer, small_text_texture, &icon_src,
-                        &shadow_dst
-                    );
-                }
-                SDL_SetTextureColorMod(
-                    small_text_texture, style->color.r, style->color.g,
-                    style->color.b
-                );
-                SDL_SetTextureAlphaMod(small_text_texture, style->color.a);
-                SDL_RenderCopyF(
-                    game_app.renderer, small_text_texture, &icon_src, &text_dst
-                );
-            } else if (arg0 == 1) {
-                // draw joystick icons
-                int controller_type = 0;
-#if defined(__PSP__)
-                controller_type = 1;
-#else
-                switch (SDL_GameControllerGetType(game_app.joystick.device)) {
-                case SDL_CONTROLLER_TYPE_XBOX360:
-                case SDL_CONTROLLER_TYPE_XBOXONE:
-                    controller_type = 0;
-                    break;
-                default:
-                    controller_type = 0;
-                    break;
-                }
-#endif
-                SDL_Rect icon_src = {16 * arg1, 16 * controller_type, 16, 16};
-                SDL_FRect icon_dst = text_dst;
-                if (style->has_shadow) {
-                    icon_dst.w += style->shadow_offset.x * style->size;
-                    icon_dst.h += style->shadow_offset.y * style->size;
-                }
-                SDL_SetTextureAlphaMod(input_prompt_texture, style->color.a);
-                SDL_RenderCopyF(
-                    game_app.renderer, input_prompt_texture, &icon_src,
-                    &icon_dst
-                );
-            }
         } else if (str[i] >= '!' && str[i] <= '~') {
             // draw printable ASCII characters
             text_src.x = (str[i] - ' ') % 16 * SMALL_TEXT_WIDTH;
@@ -373,4 +307,17 @@ void DrawSmallBitmapText(
         text_dst.x += SMALL_TEXT_WIDTH * style->size + style->char_space;
     }
     free(str);
+}
+
+void DrawBitmapIcon(float x, float y, int size, SDL_Color color, IconID id) {
+    SDL_Rect icon_src = {
+        (id + 96) % 16 * SMALL_TEXT_WIDTH, (id + 96) / 16 * SMALL_TEXT_HEIGHT,
+        SMALL_TEXT_WIDTH, SMALL_TEXT_HEIGHT
+    };
+    SDL_SetTextureColorMod(small_text_texture, color.r, color.g, color.b);
+    SDL_SetTextureAlphaMod(small_text_texture, color.a);
+    SDL_RenderCopy(
+        game_app.renderer, small_text_texture, &icon_src,
+        &(SDL_Rect){x, y, size, size}
+    );
 }

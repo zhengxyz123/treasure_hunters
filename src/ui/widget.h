@@ -39,9 +39,9 @@ void HandleWidgetEvent(SDL_Event* event);
 void TickWidgets(float dt);
 void WidgetBegin();
 int WidgetIsHovering();
-void CalcButtonTextSize(char* str, float* w, float* h);
+void CalcButtonTextSize(char* str, int* w, int* h);
 int WidgetButton(float x, float y, char* str, int disabled);
-int WidgetOption(float x, float y, int* data);
+int WidgetOption(float x, float y, int size, int* data);
 int WidgetSlider(float x, float y, float w, float h, SliderData* data);
 void WidgetEnd();
 

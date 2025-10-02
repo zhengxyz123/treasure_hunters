@@ -23,6 +23,8 @@
 #ifndef _TH_TEXT_TTF_H_
 #define _TH_TEXT_TTF_H_
 
+#include <SDL.h>
+
 typedef enum {
     FONTFACE_NOTOCJK_JP,
     FONTFACE_NOTOCJK_KR,
@@ -31,11 +33,24 @@ typedef enum {
     FONTFACE_NOTOCJK_HK
 } FontFaceIndex;
 
+typedef struct {
+    int align;
+    int anchor;
+    int size;
+    int style;
+    SDL_Color color;
+} FontConfig;
+
 void InitTTFText();
 void QuitTTFText();
-void ReloafFont();
-void SetFontColor(int r, int g, int b, int a);
+void ReloadFont(long index);
+void SetFontAlign(int align);
+void SetFontAnchor(int anchor);
+void SetFontSize(int size);
 void SetFontStyle(int style);
+void SetFontColor(int r, int g, int b, int a);
+void GetCurrentFontConfig(FontConfig* style);
+int MeasureTextSize(char* str, int* w, int* h);
 void DrawTextWrapped(float x, float y, int max_width, char* format, ...);
 void DrawText(float x, float y, char* format, ...);
 

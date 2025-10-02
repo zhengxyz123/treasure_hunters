@@ -31,8 +31,10 @@
 #include "../global.h"
 #include "../resources/loader.h"
 #include "frametimer.h"
-#include "text/text.h"
 #include "text/bitmap.h"
+#include "text/text.h"
+#include "text/ttf.h"
+#include <SDL_ttf.h>
 #include <assert.h>
 #include <stdlib.h>
 
@@ -63,32 +65,6 @@ SDL_Texture* button_texture = NULL;
 SDL_Texture* slider_texture = NULL;
 Mix_Chunk* click_sound = NULL;
 Mix_Chunk* switch_sound = NULL;
-
-BitmapTextStyle normal_text_style = {
-    .size = 1.0,
-    .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
-    .color = {0, 0, 0, 255},
-    .has_shadow = 1,
-    .shadow_offset = {1, 1},
-    .shadow_color = {85, 85, 85, 255}
-};
-BitmapTextStyle hovering_text_style = {
-    .size = 1.0,
-    .align = TEXT_ALIGN_LEFT,
-    .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
-    .color = {17, 160, 54, 255},
-    .has_shadow = 1,
-    .shadow_offset = {1, 1},
-    .shadow_color = {4, 40, 13, 255}
-};
-BitmapTextStyle disabled_text_style = {
-    .size = 1.0,
-    .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
-    .color = {170, 170, 170, 255},
-    .has_shadow = 1,
-    .shadow_offset = {1, 1},
-    .shadow_color = {42, 42, 42, 255}
-};
 
 void InitWidget() {
     ctx.widget_list.size = 16;
@@ -251,26 +227,30 @@ void WidgetBegin() {
         SDL_FRect rect = ctx.widget_list.data[ctx.widget_list.now];
         ctx.mouse_pos = (SDL_FPoint){rect.x + rect.w / 2, rect.y + rect.h / 2};
     }
-    normal_text_style.size = game_app.interface_size;
-    hovering_text_style.size = game_app.interface_size;
-    disabled_text_style.size = game_app.interface_size;
 }
 
 int WidgetIsHovering() {
     return ctx.is_hovering;
 }
 
-void CalcButtonTextSize(char* str, float* w, float* h) {
-    CalcSmallBitmapTextSize(str, &normal_text_style, w, h);
+void CalcButtonTextSize(char* str, int* w, int* h) {
+    MeasureTextSize(str, w, h);
 }
 
 int WidgetButton(float x, float y, char* str, int disabled) {
     ClearStates();
     // draw widget
-    float text_w, text_h;
-    CalcSmallBitmapTextSize(str, &normal_text_style, &text_w, &text_h);
+    int text_w, text_h;
+    FontConfig prev_cfg;
+    GetCurrentFontConfig(&prev_cfg);
+    SetFontStyle(TTF_STYLE_BOLD);
+    SetFontAnchor(TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP);
+    MeasureTextSize(str, &text_w, &text_h);
     if (disabled) {
-        DrawSmallBitmapText(x, y, &disabled_text_style, str);
+        SetFontColor(170, 170, 170, 255);
+        DrawText(x, y, str);
+        SetFontStyle(prev_cfg.style);
+        SetFontAnchor(prev_cfg.anchor);
         return 0;
     }
     // handle events
@@ -279,10 +259,16 @@ int WidgetButton(float x, float y, char* str, int disabled) {
         AppendWidget(&box);
     }
     if (SDL_PointInFRect(&ctx.mouse_pos, &box)) {
-        DrawSmallBitmapText(x, y, &hovering_text_style, str);
+        SetFontColor(17, 160, 54, 255);
+        DrawText(x, y, str);
+        SetFontStyle(prev_cfg.style);
+        SetFontAnchor(prev_cfg.anchor);
         ctx.is_hovering = 1;
     } else {
-        DrawSmallBitmapText(x, y, &normal_text_style, str);
+        SetFontColor(0, 0, 0, 255);
+        DrawText(x, y, str);
+        SetFontStyle(prev_cfg.style);
+        SetFontAnchor(prev_cfg.anchor);
         return 0;
     }
     if (ctx.mouse_clicked && SDL_PointInFRect(&ctx.mouse_clicked_pos, &box)) {
@@ -296,13 +282,11 @@ int WidgetButton(float x, float y, char* str, int disabled) {
     }
 }
 
-int WidgetOption(float x, float y, int* data) {
+int WidgetOption(float x, float y, int size, int* data) {
     ClearStates();
     // draw widget
-    float size = normal_text_style.size;
     SDL_FRect button_dst = {
-        x - 4 * size, y - 3 * size, size * (SMALL_TEXT_WIDTH + 8),
-        size * (SMALL_TEXT_HEIGHT + 8)
+        x - 0.5 * size, y - 3.0 / 8 * size, size * 2, size * 2
     };
     SDL_RenderCopyF(
         game_app.renderer, button_texture, &(SDL_Rect){0, 0, 14, 14},
@@ -313,14 +297,14 @@ int WidgetOption(float x, float y, int* data) {
     }
     // handle events
     if (SDL_PointInFRect(&ctx.mouse_pos, &button_dst)) {
-        DrawSmallBitmapText(
-            x, y, &(BitmapTextStyle){.size = size, .color = {0, 0, 0, 128}}, "{0,%d}",
+        DrawBitmapIcon(
+            x, y, size, (SDL_Color){0, 0, 0, 128},
             *data == 1 ? ICON_TICK : ICON_CROSS
         );
         ctx.is_hovering = 1;
     } else {
-        DrawSmallBitmapText(
-            x, y, &(BitmapTextStyle){.size = size, .color = {0, 0, 0, 255}}, "{0,%d}",
+        DrawBitmapIcon(
+            x, y, size, (SDL_Color){0, 0, 0, 255},
             *data == 1 ? ICON_TICK : ICON_CROSS
         );
     }
@@ -341,7 +325,7 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
     // draw widget
     SDL_Rect slider_src[] = {{24, 3, 6, 6}, {37, 3, 10, 6}, {30, 3, 6, 6}};
     SDL_FRect slider_dst[] = {
-        {x, y, h, h}, {x + h, y, w - 2 * h, h}, {x + w - h, y, h, h}
+        {x, y, h, h}, {x + h - 1, y, w - 2 * h + 2, h}, {x + w - h, y, h, h}
     };
     for (int i = 0; i < 3; ++i) {
         SDL_RenderCopyF(
@@ -413,4 +397,10 @@ int WidgetSlider(float x, float y, float w, float h, SliderData* data) {
 
 void WidgetEnd() {
     ctx.should_update_widgets = 0;
+#if !defined(NDEBUG)
+    SDL_SetRenderDrawColor(game_app.renderer, 255, 0, 0, 255);
+    for (size_t i = 0; i < ctx.widget_list.len; ++i) {
+        SDL_RenderDrawRectF(game_app.renderer, &ctx.widget_list.data[i]);
+    }
+#endif
 }
