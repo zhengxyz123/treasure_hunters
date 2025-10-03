@@ -34,6 +34,10 @@
     #define PATH_MAX MAX_PATH
 #endif
 
+#ifndef PATH_MAX
+    #define PATH_MAX 4096
+#endif
+
 #include "frametimer.h"
 #include "resources/respack.h"
 

@@ -21,8 +21,8 @@
 */
 
 #include "start_menu.h"
-#include "../translation.h"
 #include "../global.h"
+#include "../translation.h"
 #include "../ui/text/bitmap.h"
 #include "../ui/text/text.h"
 #include "../ui/text/ttf.h"
@@ -69,29 +69,42 @@ void StartSceneTick(float dt) {
     );
     int text_w, text_h;
     WidgetBegin();
-    MeasureTextSize(TransaltionGetText("start_scene.new_game"), &text_w, &text_h);
+    MeasureTextSize(
+        TransaltionGetText("start_scene.new_game"), &text_w, &text_h
+    );
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 - 1.7 * text_h, TransaltionGetText("start_scene.new_game"), 0
+            (win_w - text_w) / 2.0, win_h / 2.0 - 1.7 * text_h,
+            TransaltionGetText("start_scene.new_game"), 0
         )) {
         SwitchScene(WORLD_SCENE);
     }
-    MeasureTextSize(TransaltionGetText("start_scene.continue_game"), &text_w, &text_h);
-    WidgetButton(
-        (win_w - text_w) / 2.0, win_h / 2.0 - 0.6 * text_h, TransaltionGetText("start_scene.continue_game"), 1
+    MeasureTextSize(
+        TransaltionGetText("start_scene.continue_game"), &text_w, &text_h
     );
-    MeasureTextSize(TransaltionGetText("start_scene.settings"), &text_w, &text_h);
+    WidgetButton(
+        (win_w - text_w) / 2.0, win_h / 2.0 - 0.6 * text_h,
+        TransaltionGetText("start_scene.continue_game"), 1
+    );
+    MeasureTextSize(
+        TransaltionGetText("start_scene.settings"), &text_w, &text_h
+    );
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 + 0.5 * text_h, TransaltionGetText("start_scene.settings"), 0
+            (win_w - text_w) / 2.0, win_h / 2.0 + 0.5 * text_h,
+            TransaltionGetText("start_scene.settings"), 0
         )) {
         SwitchScene(SETTING_SCENE);
     }
-    MeasureTextSize(TransaltionGetText("start_scene.credits"), &text_w, &text_h);
+    MeasureTextSize(
+        TransaltionGetText("start_scene.credits"), &text_w, &text_h
+    );
     WidgetButton(
-        (win_w - text_w) / 2.0, win_h / 2.0 + 1.6 * text_h, TransaltionGetText("start_scene.credits"), 0
+        (win_w - text_w) / 2.0, win_h / 2.0 + 1.6 * text_h,
+        TransaltionGetText("start_scene.credits"), 0
     );
     MeasureTextSize(TransaltionGetText("start_scene.exit"), &text_w, &text_h);
     if (WidgetButton(
-            (win_w - text_w) / 2.0, win_h / 2.0 + 2.7 * text_h, TransaltionGetText("start_scene.exit"), 0
+            (win_w - text_w) / 2.0, win_h / 2.0 + 2.7 * text_h,
+            TransaltionGetText("start_scene.exit"), 0
         )) {
         game_app.should_quit = 1;
     }

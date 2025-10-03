@@ -37,18 +37,6 @@ SDL_Texture* big_text_texture = NULL;
 SDL_Texture* small_text_texture = NULL;
 SDL_Texture* input_prompt_texture = NULL;
 
-BitmapTextStyle default_big_text_style = {
-    4.0, 2, 2, TEXT_ALIGN_LEFT, TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
-};
-BitmapTextStyle default_small_text_style = {
-    .size = 2.0,
-    .anchor = TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP,
-    .color = {0, 0, 0, 255},
-    .has_shadow = 1,
-    .shadow_offset = {1, 1},
-    .shadow_color = {255, 255, 255, 255}
-};
-
 void InitBitmapText() {
     big_text_texture = LoadTexture("images/ui/big_text.png");
     small_text_texture = LoadTexture("images/ui/small_text.png");
@@ -64,9 +52,6 @@ void QuitDitmapText() {
 void CalcBigBitmapTextSize(
     char* str, BitmapTextStyle* style, float* w, float* h
 ) {
-    if (!style) {
-        style = &default_big_text_style;
-    }
     float line_w = 0;
     float w_temp = 0;
     float h_temp = style->size * BIG_TEXT_HEIGHT + style->line_space;
@@ -103,13 +88,11 @@ float CalcBigBitmapTextWidthOneLine(char* str, BitmapTextStyle* style) {
 void DrawBigBitmapText(
     float x, float y, BitmapTextStyle* style, const char* format, ...
 ) {
-    if (!style) {
-        style = &default_big_text_style;
-    }
     va_list args;
     va_start(args, format);
     char* str;
-#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__)
+#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__) &&         \
+    !defined(__vita__)
     vasprintf(&str, format, args);
 #else
     str = (char*)calloc(1024, sizeof(char));
@@ -174,24 +157,18 @@ void DrawBigBitmapText(
 void CalcSmallBitmapTextSize(
     char* str, BitmapTextStyle* style, float* w, float* h
 ) {
-    if (!style) {
-        style = &default_small_text_style;
-    }
     float line_w = 0;
     float w_temp = 0;
-    float h_temp = style->size * SMALL_TEXT_HEIGHT + style->line_space;
+    float h_temp = style->size + style->line_space;
     for (int i = 0; str[i] != '\0'; ++i) {
-        if (str[i] == '{') {
-            while (str[++i] != '}') {}
-            line_w += style->size * SMALL_TEXT_WIDTH + style->char_space;
-        } else if (str[i] == '\n') {
-            h_temp += style->size * SMALL_TEXT_HEIGHT + style->line_space;
+        if (str[i] == '\n') {
+            h_temp += style->size + style->line_space;
             if (line_w > w_temp) {
                 w_temp = line_w;
             }
             line_w = 0;
         } else {
-            line_w += style->size * SMALL_TEXT_WIDTH + style->char_space;
+            line_w += style->size + style->char_space;
         }
     }
     if (line_w > w_temp) {
@@ -208,12 +185,7 @@ void CalcSmallBitmapTextSize(
 float CalcSmalBitmapTextWidthOneLine(char* str, BitmapTextStyle* style) {
     float w = 0;
     for (int i = 0; str[i] != '\n' && str[i] != '\0'; ++i) {
-        if (str[i] == '{') {
-            while (str[++i] != '}') {}
-            w += style->size * SMALL_TEXT_WIDTH + style->char_space;
-        } else {
-            w += style->size * SMALL_TEXT_WIDTH + style->char_space;
-        }
+        w += style->size + style->char_space;
     }
     return w;
 }
@@ -221,16 +193,17 @@ float CalcSmalBitmapTextWidthOneLine(char* str, BitmapTextStyle* style) {
 void DrawSmallBitmapText(
     float x, float y, BitmapTextStyle* style, const char* format, ...
 ) {
-    if (!style) {
-        style = &default_small_text_style;
-    }
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    y += 0.25 * style->size;
+#endif
     SDL_SetTextureColorMod(
         small_text_texture, style->color.r, style->color.g, style->color.b
     );
     va_list args;
     va_start(args, format);
     char* str;
-#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__)
+#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__) &&         \
+    !defined(__vita__)
     vasprintf(&str, format, args);
 #else
     str = (char*)calloc(1024, sizeof(char));
@@ -257,10 +230,7 @@ void DrawSmallBitmapText(
     }
 
     SDL_Rect text_src = {0, 0, SMALL_TEXT_WIDTH, SMALL_TEXT_HEIGHT};
-    SDL_FRect text_dst = {
-        x + dx, y, SMALL_TEXT_WIDTH * style->size,
-        SMALL_TEXT_HEIGHT * style->size
-    };
+    SDL_FRect text_dst = {x + dx, y, style->size, style->size};
     for (int i = 0; str[i] != '\0'; ++i) {
         if (str[i] == '\n') {
             // make a newline
@@ -271,7 +241,7 @@ void DrawSmallBitmapText(
                 dx = text_w - line_w;
             }
             text_dst.x = x + dx;
-            text_dst.y += SMALL_TEXT_HEIGHT * style->size + style->line_space;
+            text_dst.y += style->size + style->line_space;
             continue;
         } else if (str[i] >= '!' && str[i] <= '~') {
             // draw printable ASCII characters
@@ -304,7 +274,7 @@ void DrawSmallBitmapText(
                 game_app.renderer, small_text_texture, &text_src, &text_dst
             );
         }
-        text_dst.x += SMALL_TEXT_WIDTH * style->size + style->char_space;
+        text_dst.x += style->size + style->char_space;
     }
     free(str);
 }

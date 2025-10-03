@@ -24,12 +24,12 @@
 #define _TH_SETTING_H_
 
 typedef struct {
-#if !defined(__PSP__)
+#if !defined(__PSP__) && !defined(__vita__)
     int fullscreen;
 #endif
     int music_volume;
     int sfx_volume;
-#if defined(__PSP__)
+#if defined(__PSP__) || defined(__vita__)
     int mute_all;
 #else
     int mute_when_unfocused;

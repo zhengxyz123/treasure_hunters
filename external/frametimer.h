@@ -389,7 +389,7 @@ float frametimer_update( frametimer_t* frametimer ) {
 			frametimer->prev_clock = clock_gettime_nsec_np( CLOCK_UPTIME_RAW );
 		#else
 			struct timespec t;
-			#ifdef __PSP__
+			#if defined(__PSP__) || defined(__vita__)
 				clock_gettime( CLOCK_MONOTONIC, &t );
 			#else
 				clock_gettime( CLOCK_MONOTONIC_RAW, &t );
@@ -412,7 +412,7 @@ float frametimer_update( frametimer_t* frametimer ) {
 		curr_clock = (FRAMETIMER_U64) clock_gettime_nsec_np( CLOCK_UPTIME_RAW );
 	#else
 		struct timespec t;
-		#ifdef __PSP__
+		#if defined(__PSP__) || defined(__vita__)
 			clock_gettime( CLOCK_MONOTONIC, &t );
 		#else
 			clock_gettime( CLOCK_MONOTONIC_RAW, &t );

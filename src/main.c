@@ -49,12 +49,12 @@ GameApp game_app = {
     .window_focused = 1
 };
 Setting game_setting = {
-#if !defined(__PSP__)
+#if !defined(__PSP__) && !defined(__vita__)
     .fullscreen = 0,
 #endif
     .music_volume = 64,
     .sfx_volume = 64,
-#if defined(__PSP__)
+#if defined(__PSP__) || defined(__vita__)
     .mute_all = 0
 #else
     .mute_when_unfocused = 1
@@ -89,11 +89,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 2048);
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     if (TTF_Init() != 0) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "TTF_Init(): %s\n", SDL_GetError()
         );
     }
+#endif
 
     // setup global_app
     game_app.argc = argc;
@@ -130,8 +132,8 @@ int main(int argc, char* argv[]) {
     );
 #else
     game_app.window = SDL_CreateWindow(
-        "Treasure Hunters", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640,
-        480, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+        "Treasure Hunters", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 960,
+        544, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
 #endif
     if (game_app.window == NULL) {
@@ -140,7 +142,7 @@ int main(int argc, char* argv[]) {
         );
         return 1;
     }
-#if !defined(__PSP__)
+#if !defined(__PSP__) && !defined(__vita__)
     SDL_Surface* icon_image = LoadSurface("images/icon.png");
     SDL_SetWindowIcon(game_app.window, icon_image);
     SDL_SetWindowMinimumSize(game_app.window, 640, 480);
@@ -155,7 +157,7 @@ int main(int argc, char* argv[]) {
 
     // restore previous settings
     InitSetting();
-#if defined(__PSP__)
+#if defined(__PSP__) || defined(__vita__)
     Mix_Volume(
         MUSIC_CHANNEL, game_setting.mute_all ? 0 : game_setting.music_volume
     );
@@ -187,7 +189,7 @@ int main(int argc, char* argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-#if !defined(__PSP__)
+#if !defined(__PSP__) && !defined(__vita__)
             case SDL_WINDOWEVENT:
                 if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
                     game_app.window_focused = 0;
@@ -260,7 +262,7 @@ int main(int argc, char* argv[]) {
     QuitUISystem();
     FreeRespack(game_app.assets_pack);
     free(game_app.exec_path);
-#if !defined(__PSP__)
+#if !defined(__PSP__) && !defined(__vita__)
     SDL_FreeSurface(icon_image);
 #endif
     SDL_DestroyRenderer(game_app.renderer);
@@ -268,7 +270,9 @@ int main(int argc, char* argv[]) {
     IMG_Quit();
     Mix_CloseAudio();
     Mix_Quit();
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
     TTF_Quit();
+#endif
     SDL_Quit();
     return 0;
 }

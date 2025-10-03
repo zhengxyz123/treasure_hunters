@@ -25,7 +25,7 @@
 #include <cjson/cJSON.h>
 #include <stdio.h>
 #include <string.h>
-#if defined(__LINUX__) || defined(__PSP__)
+#if defined(__LINUX__) || defined(__PSP__) || defined(__vita__)
     #include <unistd.h>
 #elif defined(__WIN32__)
     #include <io.h>
@@ -59,7 +59,7 @@ void InitSetting() {
     if (setting_json == NULL) {
         return;
     }
-#if !defined(__PSP__)
+#if !defined(__PSP__) && !defined(__vita__)
     if ((object = cJSON_GetObjectItem(setting_json, "fullscreen")) != NULL) {
         if (cJSON_IsBool(object)) {
             game_setting.fullscreen = object->valueint;
@@ -76,7 +76,7 @@ void InitSetting() {
             game_setting.sfx_volume = object->valueint;
         }
     }
-#if defined(__PSP__)
+#if defined(__PSP__) || defined(__vita__)
     if ((object = cJSON_GetObjectItem(setting_json, "mute_all")) != NULL) {
         if (cJSON_IsBool(object)) {
             game_setting.mute_all = object->valueint;
@@ -104,7 +104,7 @@ void SaveSetting() {
         return;
     }
     cJSON* setting_json = cJSON_CreateObject();
-#if !defined(__PSP__)
+#if !defined(__PSP__) && !defined(__vita__)
     cJSON_AddBoolToObject(setting_json, "fullscreen", game_setting.fullscreen);
 #endif
     cJSON_AddNumberToObject(
@@ -113,7 +113,7 @@ void SaveSetting() {
     cJSON_AddNumberToObject(
         setting_json, "sfx_volume", game_setting.sfx_volume
     );
-#if defined(__PSP__)
+#if defined(__PSP__) || defined(__vita__)
     cJSON_AddBoolToObject(setting_json, "mute_all", game_setting.mute_all);
 #else
     cJSON_AddBoolToObject(

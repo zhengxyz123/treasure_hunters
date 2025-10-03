@@ -21,9 +21,9 @@
 */
 
 #include "translation.h"
-#include "ui/text/ttf.h"
 #include "global.h"
 #include "resources/respack.h"
+#include "ui/text/ttf.h"
 #include <stdlib.h>
 
 cJSON *lang_pack, *fallback_pack;
@@ -31,7 +31,11 @@ extern GameApp game_app;
 
 cJSON* LoadTranslation(char* lang) {
     char* filename = calloc(32, sizeof(char));
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    snprintf(filename, 32, "i18n/%s.json", "en_us");
+#else
     snprintf(filename, 32, "i18n/%s.json", lang);
+#endif
     size_t size;
     void* content = RespackGetItem(game_app.assets_pack, filename, &size);
     free(filename);
@@ -48,6 +52,7 @@ void QuitTranslation() {
 }
 
 void TranslationSetLanguage(char* lang) {
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     lang_pack = LoadTranslation(lang);
     if (strcmp(lang, "zh_cn") == 0) {
         ReloadFont(FONTFACE_NOTOCJK_SC);
@@ -58,6 +63,7 @@ void TranslationSetLanguage(char* lang) {
     } else {
         ReloadFont(FONTFACE_NOTOCJK_JP);
     }
+#endif
 }
 
 int TranslationHasItem(char* key) {

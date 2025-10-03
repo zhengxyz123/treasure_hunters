@@ -26,35 +26,11 @@
 #include <SDL_ttf.h>
 #include <stdarg.h>
 
-// font texture cache only available for PSP
-#if defined(__PSP__)
-    #define TH_ENABLE_FONT_TEXTURE_CACHE
-#endif
-#if defined(TH_ENABLE_FONT_TEXTURE_CACHE)
-    #include "../../resources/respack.h"
-#endif
-#if !defined(TH_TEXTURE_CACHE_SIZE)
-    #define TH_TEXTURE_CACHE_SIZE 32
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    #include "bitmap.h"
 #endif
 
 extern GameApp game_app;
-
-#if defined(TH_ENABLE_FONT_TEXTURE_CACHE)
-typedef struct {
-    int valid;
-    uint32_t hash;
-    int align;
-    int style;
-    int size;
-    SDL_Texture* texture;
-} CacheEntry;
-
-struct {
-    CacheEntry entry[TH_TEXTURE_CACHE_SIZE];
-    int size;
-    int next_entry;
-} texture_cache;
-#endif
 
 FontConfig font_config;
 
@@ -65,6 +41,9 @@ int max_wrapped_width = 512;
 int _mbtowc(wchar_t* pwc, const char* s, size_t n);
 
 void InitTTFText() {
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    return;
+#endif
     font_file = calloc(PATH_MAX, sizeof(char));
     strcpy(font_file, game_app.exec_path);
     strcat(font_file, "NotoSerifCJK.ttc");
@@ -75,37 +54,19 @@ void InitTTFText() {
         max_wrapped_width = info.max_texture_width;
     }
     font_config.color = (SDL_Color){0, 0, 0, 255};
-#if defined(TH_ENABLE_FONT_TEXTURE_CACHE)
-    texture_cache.size = 0;
-    texture_cache.next_entry = 0;
-    for (int i = 0; i < TH_TEXTURE_CACHE_SIZE; ++i) {
-        texture_cache.entry[i].valid = 0;
-    }
-#endif
 }
 
 void QuitTTFText() {
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    return;
+#endif
     TTF_CloseFont(font);
     free(font_file);
-#if defined(TH_ENABLE_FONT_TEXTURE_CACHE)
-    for (int i = 0; i < TH_TEXTURE_CACHE_SIZE; ++i) {
-        if (texture_cache.entry[i].valid) {
-            SDL_DestroyTexture(texture_cache.entry[i].texture);
-        }
-    }
-#endif
 }
 
 void ReloadFont(long index) {
-#if defined(TH_ENABLE_FONT_TEXTURE_CACHE)
-    for (int i = 0; i < TH_TEXTURE_CACHE_SIZE; ++i) {
-        if (texture_cache.entry[i].valid) {
-            SDL_DestroyTexture(texture_cache.entry[i].texture);
-            texture_cache.entry[i].valid = 0;
-        }
-    }
-    texture_cache.size = 0;
-    texture_cache.next_entry = 0;
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    return;
 #endif
     font = TTF_OpenFontIndex(font_file, font_config.size, index);
     TTF_SetFontKerning(font, 1);
@@ -115,7 +76,9 @@ void ReloadFont(long index) {
 
 void SetFontAlign(int align) {
     font_config.align = align;
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     TTF_SetFontWrappedAlign(font, align);
+#endif
 }
 
 void SetFontAnchor(int anchor) {
@@ -124,12 +87,16 @@ void SetFontAnchor(int anchor) {
 
 void SetFontSize(int size) {
     font_config.size = size;
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     TTF_SetFontSize(font, size);
+#endif
 }
 
 void SetFontStyle(int style) {
     font_config.style = style;
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     TTF_SetFontStyle(font, style);
+#endif
 }
 
 void SetFontColor(int r, int g, int b, int a) {
@@ -143,17 +110,52 @@ void GetCurrentFontConfig(FontConfig* config) {
 }
 
 int MeasureTextSize(char* str, int* w, int* h) {
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    BitmapTextStyle style = {.size = font_config.size};
+    float temp_w, temp_h;
+    CalcSmallBitmapTextSize(str, &style, &temp_w, &temp_h);
+    if (w) {
+        *w = temp_w;
+    }
+    if (h) {
+        *h = 1.5 * temp_h;
+    }
+    return 1;
+#else
     return TTF_SizeUTF8(font, str, w, h);
+#endif
 }
 
 void DrawTextWrappedV(int x, int y, int max_width, char* format, va_list args) {
     char* str;
-#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__)
+#if defined(__GNUC__) && !defined(__MINGW32__) && !defined(__PSP__) &&         \
+    !defined(__vita__)
     vasprintf(&str, format, args);
 #else
     str = (char*)calloc(1024, sizeof(char));
     vsprintf(str, format, args);
 #endif
+#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+    int align = 0;
+    switch (font_config.align) {
+    case TTF_WRAPPED_ALIGN_CENTER:
+        align = TEXT_ALIGN_CENTER;
+        break;
+    case TTF_WRAPPED_ALIGN_LEFT:
+        align = TEXT_ALIGN_LEFT;
+        break;
+    case TTF_WRAPPED_ALIGN_RIGHT:
+        align = TEXT_ALIGN_RIGHT;
+        break;
+    }
+    BitmapTextStyle style = {
+        .size = font_config.size,
+        .align = align,
+        .anchor = font_config.anchor,
+        .color = font_config.color
+    };
+    DrawSmallBitmapText(x, y, &style, str);
+#else
     if (max_width > max_wrapped_width) {
         max_width = max_wrapped_width;
     }
@@ -169,60 +171,6 @@ void DrawTextWrappedV(int x, int y, int max_width, char* format, va_list args) {
     } else if (font_config.anchor & TEXT_ANCHOR_Y_BOTTOM) {
         y -= text_h;
     }
-#if defined(TH_ENABLE_FONT_TEXTURE_CACHE)
-    for (int i = 0; i < TH_TEXTURE_CACHE_SIZE; ++i) {
-        CacheEntry entry = texture_cache.entry[i];
-        if (entry.valid) {
-            if (entry.hash == fnv1a_32(str, FNV1_32_INIT) &&
-                entry.style == font_config.style &&
-                entry.align == font_config.align &&
-                entry.size == font_config.size) {
-                int w, h;
-                SDL_QueryTexture(entry.texture, NULL, NULL, &w, &h);
-                SDL_SetTextureColorMod(
-                    entry.texture, font_config.color.r, font_config.color.g,
-                    font_config.color.b
-                );
-                SDL_SetTextureAlphaMod(entry.texture, font_config.color.a);
-                SDL_RenderCopy(
-                    game_app.renderer, entry.texture, NULL,
-                    &(SDL_Rect){x, y, w, h}
-                );
-                return;
-            }
-        }
-    }
-    if (texture_cache.size == TH_TEXTURE_CACHE_SIZE - 1) {
-        CacheEntry* entry = &texture_cache.entry[texture_cache.next_entry];
-        SDL_DestroyTexture(entry->texture);
-        entry->valid = 0;
-        entry->hash = 0;
-    } else {
-        ++texture_cache.size;
-    }
-    CacheEntry* entry = &texture_cache.entry[texture_cache.next_entry];
-    SDL_Surface* surface = TTF_RenderUTF8_Blended_Wrapped(
-        font, str, (SDL_Color){255, 255, 255, 255}, max_width
-    );
-    entry->valid = 1;
-    entry->hash = fnv1a_32(str, FNV1_32_INIT);
-    entry->style = font_config.style;
-    entry->align = font_config.align;
-    entry->size = font_config.size;
-    entry->texture = SDL_CreateTextureFromSurface(game_app.renderer, surface);
-    texture_cache.next_entry =
-        (texture_cache.next_entry + 1) % TH_TEXTURE_CACHE_SIZE;
-    SDL_SetTextureColorMod(
-        entry->texture, font_config.color.r, font_config.color.g,
-        font_config.color.b
-    );
-    SDL_SetTextureAlphaMod(entry->texture, font_config.color.a);
-    SDL_RenderCopy(
-        game_app.renderer, entry->texture, NULL,
-        &(SDL_Rect){x, y, surface->w, surface->h}
-    );
-    SDL_FreeSurface(surface);
-#else
     SDL_Surface* surface =
         TTF_RenderUTF8_Blended_Wrapped(font, str, font_config.color, max_width);
     SDL_Texture* texture =

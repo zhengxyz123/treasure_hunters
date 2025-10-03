@@ -1,7 +1,25 @@
 cmake_minimum_required(VERSION 3.15)
+
+if(DEFINED BUILD_VITA)
+  if(DEFINED ENV{VITASDK})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
+  else()
+    message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
+  endif()
+endif()
+
 project(treasure_hunters C)
 
-if(NOT PSP)
+if(VITA)
+    include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
+    set(VITA_APP_NAME "Treasure Hunters")
+    set(VITA_TITLEID  "ZHEN00001")
+    set(VITA_VERSION  "01.00")
+    set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
+    link_directories(${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
+if(NOT PSP AND NOT VITA)
     find_package(SDL2 REQUIRED)
     find_package(SDL2_image REQUIRED)
     find_package(SDL2_mixer REQUIRED)
@@ -24,6 +42,7 @@ endif()
 if(PSP)
     # generate little-endian code
     add_compile_options(-EL)
+    add_compile_definitions(TH_FALLBACK_TO_BITMAP_FONT)
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -47,7 +66,7 @@ add_custom_target(
 )
 add_executable(${PROJECT_NAME} ${BASE_DIR} ${ENTITIES_DIR} ${RES_DIR} ${SCENES_DIR} ${UI_DIR} ${UI_TEXT_DIR})
 add_dependencies(${PROJECT_NAME} generate_respack)
-if(NOT PSP)
+if(NOT PSP AND NOT VITA)
     target_link_libraries(${PROJECT_NAME} 
         SDL2::SDL2 SDL2_image::SDL2_image SDL2_mixer::SDL2_mixer
         SDL2_ttf::SDL2_ttf cjson
@@ -66,12 +85,20 @@ else()
         ${SDL2_TTF_LIBRARIES}
         cjson
     )
-    create_pbp_file(
-        TARGET ${PROJECT_NAME}
-        ICON_PATH NULL
-        BACKGROUND_PATH NULL
-        PREVIEW_PATH NULL
-        TITLE ${PROJECT_NAME}
-        VERSION 1.0
+    if(PSP)
+        create_pbp_file(
+            TARGET ${PROJECT_NAME}
+            ICON_PATH NULL
+            BACKGROUND_PATH NULL
+            PREVIEW_PATH NULL
+            TITLE "Treasure Hunters"
+            VERSION 1.0
+        )
+    else()
+    vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME})
+    vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
+        VERSION ${VITA_VERSION}
+        NAME ${VITA_APP_NAME}
     )
+    endif()
 endif()

@@ -4,6 +4,8 @@ A 2D platform game.
 
 ## Build the Executable File
 
+Python3 and [Tiled](https://www.mapeditor.org/) should be installed to generate the resource pack.
+
 First clone the whole repo:
 
 ```bash
@@ -22,7 +24,7 @@ sudo pacman -S sdl2-compat sdl2_image sdl2_mixer sdl2_ttf
 sudo apt install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
 ```
 
-Then, run:
+Build using `cmake`:
 
 ```bash
 cmake -B build -D CMAKE_BUILD_TYPE="Release"
@@ -32,13 +34,27 @@ make
 
 ### PSP
 
-You should [install PSP SDK](https://pspdev.github.io/installation.html) first.
+You should [install PSPDEV](https://pspdev.github.io/installation.html) first.
 
-Then, run:
+Build using `cmake` under Linux terminal:
 
 ```bash
 psp-cmake -B build -D CMAKE_BUILD_TYPE="Release"
-cd build /
+cd build/
+make
+```
+
+## PS Vita
+
+**Vita support is experimental!**
+
+You should install [Vita SDK](https://github.com/vitasdk/vdpm) first.
+
+Build using `cmake` with `-D BUILD_VITA=1` under Linux terminal:
+
+```
+cmake -B build -D CMAKE_BUILD_TYPE="Release" -D BUILD_VITA=1
+cd build/
 make
 ```
 
@@ -51,7 +67,7 @@ You should download and unzip
 3. `SDL2_mixer-devel-2.*.*-VC.zip` from [SDL_mixer release](https://github.com/libsdl-org/SDL_mixer/releases)
 4. `SDL2_ttf-devel-2.*.*-VC.zip ` from [SDL_ttf release](https://github.com/libsdl-org/SDL_ttf/releases)
 
-Then, run:
+Build using `cmake` with `-D CMAKE_PREFIX_PATH=...`:
 
 ```bash
 cmake -B build/
