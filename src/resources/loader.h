@@ -25,7 +25,6 @@
 
 #include <SDL.h>
 #include <SDL_mixer.h>
-// #include <SDL_ttf.h>
 
 SDL_Surface* LoadSurfaceFromMem(void* content, size_t size);
 SDL_Surface* LoadSurface(char* filename);
@@ -33,7 +32,5 @@ SDL_Texture* LoadTextureFromMem(void* content, size_t size);
 SDL_Texture* LoadTexture(char* filename);
 Mix_Chunk* LoadSoundFromMem(void* content, size_t size);
 Mix_Chunk* LoadSound(char* filename);
-// TTF_Font* LoadFontFromMem(void* content, size_t size, int ptsize, long
-// index); TTF_Font* LoadFont(char* filename, int ptsize, long index);
 
 #endif

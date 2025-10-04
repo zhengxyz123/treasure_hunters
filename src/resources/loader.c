@@ -74,26 +74,3 @@ Mix_Chunk* LoadSound(char* filename) {
     free(content);
     return chunk;
 }
-
-// TTF_Font* LoadFontFromMem(void* content, size_t size, int ptsize, long index)
-// {
-//     SDL_RWops* raw_font = SDL_RWFromConstMem(content, size);
-//     TTF_Font* font = NULL;
-//     if (index < 0) {
-//         font = TTF_OpenFontRW(raw_font, 1, ptsize);
-//     } else {
-//         font = TTF_OpenFontIndexRW(raw_font, 1, ptsize, index);
-//     }
-//     return font;
-// }
-
-// TTF_Font* LoadFont(char* filename, int ptsize, long index) {
-//     size_t size;
-//     void* content = RespackGetItem(game_app.assets_pack, filename, &size);
-//     if (size == 0) {
-//         return NULL;
-//     }
-//     TTF_Font* font = LoadFontFromMem(content, size, ptsize, index);
-//     free(content);
-//     return font;
-// }

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 if(DEFINED BUILD_VITA)
   if(DEFINED ENV{VITASDK})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
+    include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
   else()
     message(FATAL_ERROR "Please define VITASDK to point to your SDK path!")
   endif()
@@ -11,9 +12,8 @@ endif()
 project(treasure_hunters C)
 
 if(VITA)
-    include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
     set(VITA_APP_NAME "Treasure Hunters")
-    set(VITA_TITLEID  "ZHEN00001")
+    set(VITA_TITLEID  "TRHT10001")
     set(VITA_VERSION  "01.00")
     set(VITA_MKSFOEX_FLAGS "${VITA_MKSFOEX_FLAGS} -d PARENTAL_LEVEL=1")
     link_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -58,12 +58,22 @@ aux_source_directory(src/scenes SCENES_DIR)
 aux_source_directory(src/ui UI_DIR)
 aux_source_directory(src/ui/text UI_TEXT_DIR)
 
-add_custom_target(
-    generate_respack
-    COMMAND ${CMAKE_SOURCE_DIR}/tools/respack.py gen ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/assets.rpkg
-    COMMENT "Generate resource pack"
-    VERBATIM
-)
+if(PSP)
+    add_custom_target(
+        generate_respack
+        COMMAND ${CMAKE_SOURCE_DIR}/tools/respack.py gen --psp ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/assets.rpkg
+        COMMENT "Generate resource pack"
+        VERBATIM
+    )
+else()
+    add_custom_target(
+        generate_respack
+        COMMAND ${CMAKE_SOURCE_DIR}/tools/respack.py gen ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/assets.rpkg
+        COMMENT "Generate resource pack"
+        VERBATIM
+    )
+endif()
+
 add_executable(${PROJECT_NAME} ${BASE_DIR} ${ENTITIES_DIR} ${RES_DIR} ${SCENES_DIR} ${UI_DIR} ${UI_TEXT_DIR})
 add_dependencies(${PROJECT_NAME} generate_respack)
 if(NOT PSP AND NOT VITA)
@@ -95,10 +105,11 @@ else()
             VERSION 1.0
         )
     else()
-    vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME})
-    vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
-        VERSION ${VITA_VERSION}
-        NAME ${VITA_APP_NAME}
-    )
+        vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME})
+        vita_create_vpk(${PROJECT_NAME}.vpk ${VITA_TITLEID} ${PROJECT_NAME}.self
+            VERSION ${VITA_VERSION}
+            NAME ${VITA_APP_NAME}
+            FILE ${CMAKE_BINARY_DIR}/assets.rpkg assets.rpkg
+        )
     endif()
 endif()

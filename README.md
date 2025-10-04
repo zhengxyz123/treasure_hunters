@@ -36,7 +36,7 @@ make
 
 You should [install PSPDEV](https://pspdev.github.io/installation.html) first.
 
-Build using `cmake` under Linux terminal:
+Build using `cmake`:
 
 ```bash
 psp-cmake -B build -D CMAKE_BUILD_TYPE="Release"
@@ -50,7 +50,7 @@ make
 
 You should install [Vita SDK](https://github.com/vitasdk/vdpm) first.
 
-Build using `cmake` with `-D BUILD_VITA=1` under Linux terminal:
+Build using `cmake` with `-D BUILD_VITA=1`:
 
 ```
 cmake -B build -D CMAKE_BUILD_TYPE="Release" -D BUILD_VITA=1

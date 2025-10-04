@@ -131,12 +131,6 @@ void SettingSceneTick(float dt) {
     }
     int char_h;
     MeasureTextSize("M", NULL, &char_h);
-    for (int i = 8; i < 64; ++i) {
-        SetFontSize(i);
-        int h;
-        MeasureTextSize("M", NULL, &h);
-        printf("%d: %d\n", i, h);
-    }
 #endif
     int widget_y =
         (win_h - (1.5 * SDL_arraysize(settings_array) - 0.5) * char_h) / 2;

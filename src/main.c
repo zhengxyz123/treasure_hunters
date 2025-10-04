@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     );
 #else
     game_app.window = SDL_CreateWindow(
-        "Treasure Hunters", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 960,
+        "Treasure Hunters", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 966,
         544, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
     );
 #endif

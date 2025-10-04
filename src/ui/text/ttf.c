@@ -28,56 +28,62 @@
 
 #if defined(TH_FALLBACK_TO_BITMAP_FONT)
     #include "bitmap.h"
+#else
+    #include "../../resources/respack.h"
 #endif
 
 extern GameApp game_app;
 
+struct {
+    void* mem;
+    size_t mem_size;
+    SDL_RWops* src;
+    TTF_Font* font;
+} font;
 FontConfig font_config;
-
-char* font_file = NULL;
-TTF_Font* font = NULL;
 int max_wrapped_width = 512;
-
-int _mbtowc(wchar_t* pwc, const char* s, size_t n);
 
 void InitTTFText() {
 #if defined(TH_FALLBACK_TO_BITMAP_FONT)
     return;
-#endif
-    font_file = calloc(PATH_MAX, sizeof(char));
-    strcpy(font_file, game_app.exec_path);
-    strcat(font_file, "NotoSerifCJK.ttc");
-    font = TTF_OpenFontIndex(font_file, 32, FONTFACE_NOTOCJK_JP);
-    TTF_SetFontKerning(font, 1);
+#else
+    font.mem = RespackGetItem(game_app.assets_pack, "fonts/NotoSerifCJK.ttc", &font.mem_size);
+    font.src = SDL_RWFromMem(font.mem, font.mem_size);
+    font.font = TTF_OpenFontIndexRW(font.src, 1, 32, FONTFACE_NOTOCJK_JP);
+    font_config.color = (SDL_Color){0, 0, 0, 255};
     SDL_RendererInfo info;
     if (SDL_GetRendererInfo(game_app.renderer, &info) == 0) {
         max_wrapped_width = info.max_texture_width;
     }
-    font_config.color = (SDL_Color){0, 0, 0, 255};
+#endif
 }
 
 void QuitTTFText() {
 #if defined(TH_FALLBACK_TO_BITMAP_FONT)
     return;
+#else
+    TTF_CloseFont(font.font);
+    free(font.mem);
 #endif
-    TTF_CloseFont(font);
-    free(font_file);
 }
 
 void ReloadFont(long index) {
 #if defined(TH_FALLBACK_TO_BITMAP_FONT)
     return;
+#else
+    TTF_CloseFont(font.font);
+    font.src = SDL_RWFromMem(font.mem, font.mem_size);
+    font.font = TTF_OpenFontIndexRW(font.src, 1, font_config.size, index);
+    TTF_SetFontKerning(font.font, 1);
+    TTF_SetFontStyle(font.font, font_config.style);
+    TTF_SetFontWrappedAlign(font.font, font_config.align);
 #endif
-    font = TTF_OpenFontIndex(font_file, font_config.size, index);
-    TTF_SetFontKerning(font, 1);
-    TTF_SetFontStyle(font, font_config.style);
-    TTF_SetFontWrappedAlign(font, font_config.align);
 }
 
 void SetFontAlign(int align) {
     font_config.align = align;
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
-    TTF_SetFontWrappedAlign(font, align);
+    TTF_SetFontWrappedAlign(font.font, align);
 #endif
 }
 
@@ -88,14 +94,14 @@ void SetFontAnchor(int anchor) {
 void SetFontSize(int size) {
     font_config.size = size;
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
-    TTF_SetFontSize(font, size);
+    TTF_SetFontSize(font.font, size);
 #endif
 }
 
 void SetFontStyle(int style) {
     font_config.style = style;
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
-    TTF_SetFontStyle(font, style);
+    TTF_SetFontStyle(font.font, style);
 #endif
 }
 
@@ -122,7 +128,7 @@ int MeasureTextSize(char* str, int* w, int* h) {
     }
     return 1;
 #else
-    return TTF_SizeUTF8(font, str, w, h);
+    return TTF_SizeUTF8(font.font, str, w, h);
 #endif
 }
 
@@ -172,7 +178,7 @@ void DrawTextWrappedV(int x, int y, int max_width, char* format, va_list args) {
         y -= text_h;
     }
     SDL_Surface* surface =
-        TTF_RenderUTF8_Blended_Wrapped(font, str, font_config.color, max_width);
+        TTF_RenderUTF8_Blended_Wrapped(font.font, str, font_config.color, max_width);
     SDL_Texture* texture =
         SDL_CreateTextureFromSurface(game_app.renderer, surface);
     SDL_RenderCopy(

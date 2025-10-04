@@ -39,8 +39,7 @@ BitmapTextStyle title_text_style = {
     2,
     4,
     TEXT_ALIGN_CENTER,
-    TEXT_ANCHOR_X_CENTER | TEXT_ANCHOR_Y_CENTER,
-    {255, 255, 255}
+    TEXT_ANCHOR_X_CENTER | TEXT_ANCHOR_Y_CENTER
 };
 
 void StartSceneInit() {}
@@ -49,8 +48,11 @@ void StartSceneTick(float dt) {
     int win_w, win_h;
     SDL_GetWindowSize(game_app.window, &win_w, &win_h);
 #if defined(__PSP__)
+    title_text_style.size = 2;
     SetFontSize(18);
 #else
+    title_text_style.size =
+        0.11 * win_h / 15 * 96 > win_w ? 0.98 * win_w : 0.11 * win_h / 15;
     int text_size = 2.5 * win_h / (40 * 1.2);
     if (text_size < 16) {
         text_size = 16;
@@ -58,12 +60,6 @@ void StartSceneTick(float dt) {
     SetFontSize(text_size);
 #endif
     DrawBackground(dt);
-#if defined(__PSP__)
-    title_text_style.size = 2;
-#else
-    title_text_style.size =
-        0.11 * win_h / 15 * 96 > win_w ? 0.98 * win_w : 0.11 * win_h / 15;
-#endif
     DrawBigBitmapText(
         win_w / 2.0, 0.2 * win_h, &title_text_style, "TREASURE\nHUNTERS"
     );
