@@ -35,11 +35,7 @@ Scene start_scene = {
     .init = StartSceneInit, .tick = StartSceneTick, .free = StartSceneFree
 };
 BitmapTextStyle title_text_style = {
-    1.0,
-    2,
-    4,
-    TEXT_ALIGN_CENTER,
-    TEXT_ANCHOR_X_CENTER | TEXT_ANCHOR_Y_CENTER
+    1.0, 2, 4, TEXT_ALIGN_CENTER, TEXT_ANCHOR_X_CENTER | TEXT_ANCHOR_Y_CENTER
 };
 
 void StartSceneInit() {}
@@ -65,7 +61,7 @@ void StartSceneTick(float dt) {
     );
     int text_w, text_h;
     WidgetBegin();
-    MeasureTextSize(
+    CalcButtonTextSize(
         TransaltionGetText("start_scene.new_game"), &text_w, &text_h
     );
     if (WidgetButton(
@@ -74,14 +70,14 @@ void StartSceneTick(float dt) {
         )) {
         SwitchScene(WORLD_SCENE);
     }
-    MeasureTextSize(
+    CalcButtonTextSize(
         TransaltionGetText("start_scene.continue_game"), &text_w, &text_h
     );
     WidgetButton(
         (win_w - text_w) / 2.0, win_h / 2.0 - 0.6 * text_h,
         TransaltionGetText("start_scene.continue_game"), 1
     );
-    MeasureTextSize(
+    CalcButtonTextSize(
         TransaltionGetText("start_scene.settings"), &text_w, &text_h
     );
     if (WidgetButton(
@@ -90,14 +86,16 @@ void StartSceneTick(float dt) {
         )) {
         SwitchScene(SETTING_SCENE);
     }
-    MeasureTextSize(
+    CalcButtonTextSize(
         TransaltionGetText("start_scene.credits"), &text_w, &text_h
     );
     WidgetButton(
         (win_w - text_w) / 2.0, win_h / 2.0 + 1.6 * text_h,
         TransaltionGetText("start_scene.credits"), 0
     );
-    MeasureTextSize(TransaltionGetText("start_scene.exit"), &text_w, &text_h);
+    CalcButtonTextSize(
+        TransaltionGetText("start_scene.exit"), &text_w, &text_h
+    );
     if (WidgetButton(
             (win_w - text_w) / 2.0, win_h / 2.0 + 2.7 * text_h,
             TransaltionGetText("start_scene.exit"), 0

@@ -47,7 +47,9 @@ void InitTTFText() {
 #if defined(TH_FALLBACK_TO_BITMAP_FONT)
     return;
 #else
-    font.mem = RespackGetItem(game_app.assets_pack, "fonts/NotoSerifCJK.ttc", &font.mem_size);
+    font.mem = RespackGetItem(
+        game_app.assets_pack, "fonts/NotoSerifCJK.ttc", &font.mem_size
+    );
     font.src = SDL_RWFromMem(font.mem, font.mem_size);
     font.font = TTF_OpenFontIndexRW(font.src, 1, 32, FONTFACE_NOTOCJK_JP);
     font_config.color = (SDL_Color){0, 0, 0, 255};
@@ -177,8 +179,9 @@ void DrawTextWrappedV(int x, int y, int max_width, char* format, va_list args) {
     } else if (font_config.anchor & TEXT_ANCHOR_Y_BOTTOM) {
         y -= text_h;
     }
-    SDL_Surface* surface =
-        TTF_RenderUTF8_Blended_Wrapped(font.font, str, font_config.color, max_width);
+    SDL_Surface* surface = TTF_RenderUTF8_Blended_Wrapped(
+        font.font, str, font_config.color, max_width
+    );
     SDL_Texture* texture =
         SDL_CreateTextureFromSurface(game_app.renderer, surface);
     SDL_RenderCopy(

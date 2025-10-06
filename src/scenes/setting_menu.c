@@ -22,6 +22,7 @@
 
 #include "setting_menu.h"
 #include "../global.h"
+#include "../resources/respack.h"
 #include "../setting.h"
 #include "../translation.h"
 #include "../ui/text/text.h"
@@ -45,9 +46,27 @@ int fullscreen_data = 0;
 SliderData music_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
 SliderData sfx_volume_data = {.min = 0.0, .max = MIX_MAX_VOLUME};
 int mute_data = 0;
+int lang_data = 0, prev_lang_data = 0;
+char* language_list[] = {"English (United States)", "简体中文", NULL};
 
-#if defined(__PSP__) || defined(__vita__)
+#if defined(__PSP__)
 SettingItem settings_array[] = {
+    {SETTING_TYPE_SLIDER,
+     "setting_scene.music_volume",
+     {.slider = &music_volume_data}},
+    {SETTING_TYPE_SLIDER,
+     "setting_scene.sfx_volume",
+     {.slider = &sfx_volume_data}},
+    {SETTING_TYPE_OPTION, "setting_scene.mute_all", {.option = &mute_data}},
+    {SETTING_TYPE_BUTTON, "setting_scene.bind_keys", {.button = 0}},
+    {SETTING_TYPE_BUTTON, "setting_scene.reset_settings", {.button = 1}},
+    {SETTING_TYPE_BUTTON, "setting_scene.back", {.button = 2}}
+};
+#elif defined(__vita__)
+SettingItem settings_array[] = {
+    {SETTING_TYPE_COMBOBOX,
+     "setting_scene.language",
+     {.combobox = {.str = language_list, .data = &lang_data}}},
     {SETTING_TYPE_SLIDER,
      "setting_scene.music_volume",
      {.slider = &music_volume_data}},
@@ -62,6 +81,9 @@ SettingItem settings_array[] = {
 #else
 SettingItem settings_array[] = {
     {SETTING_TYPE_SUBTITLE, "setting_scene.display"},
+    {SETTING_TYPE_COMBOBOX,
+     "setting_scene.language",
+     {.combobox = {.str = language_list, .data = &lang_data}}},
     {SETTING_TYPE_OPTION,
      "setting_scene.fullscreen",
      {.option = &fullscreen_data}},
@@ -85,6 +107,16 @@ SettingItem settings_array[] = {
 void SettingSceneInit() {
 #if !defined(__PSP__) && !defined(__vita__)
     fullscreen_data = game_setting.fullscreen;
+#endif
+#if !defined(__PSP__)
+    switch (fnv1a_32(game_setting.language, FNV1_32_INIT)) {
+    case 432070101L: // zh_cn
+        lang_data = 1;
+        break;
+    default: // en_us and others
+        lang_data = 0;
+    }
+    prev_lang_data = lang_data;
 #endif
     music_volume_data.now = game_setting.music_volume;
     sfx_volume_data.now = game_setting.sfx_volume;
@@ -122,9 +154,9 @@ void SettingSceneTick(float dt) {
     MeasureTextSize("M", NULL, &test_h);
     // cannot draw all setting items in the whole window, calculate font size
     // again
-    if ((1.5 * SDL_arraysize(settings_array) - 0.5) * test_h > 0.98 * win_h) {
+    if ((1.5 * SDL_arraysize(settings_array) - 0.5) * test_h > 0.95 * win_h) {
         int desired_h =
-            0.98 * win_h / ((1.5 * SDL_arraysize(settings_array) - 0.5));
+            0.95 * win_h / ((1.5 * SDL_arraysize(settings_array) - 0.5));
         text_size =
             24 + ((32 - 24) * (desired_h - text_h1)) / (text_h2 - text_h1);
         SetFontSize(text_size);
@@ -146,7 +178,7 @@ void SettingSceneTick(float dt) {
         int text_w, text_h;
         switch (settings_array[i].type) {
         case SETTING_TYPE_BUTTON:
-            MeasureTextSize(
+            CalcButtonTextSize(
                 TransaltionGetText(settings_array[i].name), &text_w, &text_h
             );
             if (WidgetButton(
@@ -155,6 +187,22 @@ void SettingSceneTick(float dt) {
                 )) {
                 button_clicked = settings_array[i].data.button;
             }
+            widget_y += text_h * 1.5;
+            break;
+        case SETTING_TYPE_COMBOBOX:
+            MeasureTextSize(
+                TransaltionGetText(settings_array[i].name), &text_w, &text_h
+            );
+            WidgetComboBox(
+                win_w / 2.0 + 10, widget_y, settings_array[i].data.combobox.str,
+                settings_array[i].data.combobox.data
+            );
+            SetFontAnchor(TEXT_ANCHOR_X_RIGHT | TEXT_ANCHOR_Y_TOP);
+            SetFontColor(0, 0, 0, WidgetIsHovering() ? 128 : 255);
+            DrawText(
+                win_w / 2.0 - 10, widget_y,
+                TransaltionGetText(settings_array[i].name)
+            );
             widget_y += text_h * 1.5;
             break;
         case SETTING_TYPE_OPTION:
@@ -223,6 +271,22 @@ void SettingSceneTick(float dt) {
     } else if (button_clicked == 2) {
         BackToPrevScene();
     }
+#if !defined(__PSP__)
+    if (prev_lang_data != lang_data) {
+        switch (lang_data) {
+        case 0: // en_us
+            SetSettingLanguage("en_us");
+            SetTranslationLanguage("en_us");
+            break;
+        case 1: // zh_cn
+            SetSettingLanguage("zh_cn");
+            SetTranslationLanguage("zh_cn");
+            break;
+        }
+        prev_lang_data = lang_data;
+        ClearWidgets();
+    }
+#endif
 #if defined(__PSP__) || defined(__vita__)
     if (game_setting.music_volume != (int)music_volume_data.now &&
         !game_setting.mute_all) {

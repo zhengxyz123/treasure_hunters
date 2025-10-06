@@ -234,7 +234,11 @@ int WidgetIsHovering() {
 }
 
 void CalcButtonTextSize(char* str, int* w, int* h) {
+    FontConfig prev_cfg;
+    GetCurrentFontConfig(&prev_cfg);
+    SetFontStyle(TTF_STYLE_BOLD);
     MeasureTextSize(str, w, h);
+    SetFontStyle(prev_cfg.style);
 }
 
 int WidgetButton(float x, float y, char* str, int disabled) {
@@ -280,6 +284,52 @@ int WidgetButton(float x, float y, char* str, int disabled) {
     } else {
         return 0;
     }
+}
+
+int WidgetComboBox(float x, float y, char** choices, int* data) {
+    ClearStates();
+    // deal with the string
+    int count = 0;
+    for (int i = 0; choices[i] != NULL; ++i) {
+        ++count;
+    }
+    // draw widget
+    int w, h;
+    MeasureTextSize(choices[*data], &w, &h);
+    SDL_FRect box = {x, y, w, h};
+    FontConfig prev_cfg;
+    GetCurrentFontConfig(&prev_cfg);
+    SetFontStyle(TTF_STYLE_BOLD);
+    SetFontAnchor(TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP);
+    if (ctx.should_update_widgets) {
+        AppendWidget(&box);
+    }
+    // handle events
+    if (SDL_PointInFRect(&ctx.mouse_pos, &box)) {
+        SetFontColor(17, 160, 54, 255);
+        DrawText(x, y, choices[*data]);
+        SetFontStyle(prev_cfg.style);
+        SetFontAnchor(prev_cfg.anchor);
+        ctx.is_hovering = 1;
+    } else {
+        SetFontColor(0, 0, 0, 255);
+        DrawText(x, y, choices[*data]);
+        SetFontStyle(prev_cfg.style);
+        SetFontAnchor(prev_cfg.anchor);
+        return *data;
+    }
+    if (!ctx.any_button_clicked && ctx.mouse_clicked &&
+        SDL_PointInFRect(&ctx.mouse_clicked_pos, &box)) {
+        ctx.any_button_clicked = 1;
+        Mix_PlayChannel(SFX_CHANNEL, click_sound, 0);
+        ++(*data);
+        if (*data > count - 1) {
+            *data = 0;
+        }
+    } else {
+        return *data;
+    }
+    return *data;
 }
 
 int WidgetOption(float x, float y, int size, int* data) {

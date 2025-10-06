@@ -52,6 +52,9 @@ Setting game_setting = {
 #if !defined(__PSP__) && !defined(__vita__)
     .fullscreen = 0,
 #endif
+#if !defined(__PSP__)
+    .language = NULL,
+#endif
     .music_volume = 64,
     .sfx_volume = 64,
 #if defined(__PSP__) || defined(__vita__)
@@ -145,7 +148,7 @@ int main(int argc, char* argv[]) {
 #if !defined(__PSP__) && !defined(__vita__)
     SDL_Surface* icon_image = LoadSurface("images/icon.png");
     SDL_SetWindowIcon(game_app.window, icon_image);
-    SDL_SetWindowMinimumSize(game_app.window, 640, 480);
+    SDL_SetWindowMinimumSize(game_app.window, 966, 544);
 #endif
     game_app.renderer = SDL_CreateRenderer(
         game_app.window, -1,
@@ -179,7 +182,11 @@ int main(int argc, char* argv[]) {
     InitEntitySystem();
     InitSceneSystem();
     InitUISystem();
-    TranslationSetLanguage("en_us");
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
+    SetTranslationLanguage(game_setting.language);
+#else
+    SetTranslationLanguage("en_us");
+#endif
 
     // game loop
     game_app.timer = frametimer_create(NULL);
@@ -189,8 +196,8 @@ int main(int argc, char* argv[]) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-#if !defined(__PSP__) && !defined(__vita__)
             case SDL_WINDOWEVENT:
+#if !defined(__PSP__) && !defined(__vita__)
                 if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
                     game_app.window_focused = 0;
                     if (game_setting.mute_when_unfocused) {
@@ -206,8 +213,8 @@ int main(int argc, char* argv[]) {
                 } else if (event.window.event == SDL_WINDOWEVENT_RESIZED) {
                     ClearWidgets();
                 }
-                break;
 #endif
+                break;
             case SDL_CONTROLLERDEVICEADDED:
                 if (!game_app.joystick.available) {
                     game_app.joystick.device =

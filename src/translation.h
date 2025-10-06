@@ -27,7 +27,7 @@
 
 void InitTranslation();
 void QuitTranslation();
-void TranslationSetLanguage(char* lang);
+void SetTranslationLanguage(char* lang);
 int TranslationHasItem(char* key);
 char* TransaltionGetText(char* key);
 

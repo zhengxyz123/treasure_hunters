@@ -51,7 +51,7 @@ void QuitTranslation() {
     cJSON_Delete(fallback_pack);
 }
 
-void TranslationSetLanguage(char* lang) {
+void SetTranslationLanguage(char* lang) {
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     lang_pack = LoadTranslation(lang);
     if (strcmp(lang, "zh_cn") == 0) {

@@ -28,10 +28,11 @@
 
 typedef enum {
     SETTING_TYPE_BUTTON,
+    SETTING_TYPE_COMBOBOX,
+    SETTING_TYPE_OPTION,
     SETTING_TYPE_SLIDER,
     SETTING_TYPE_SUBTITLE,
-    SETTING_TYPE_OPTION,
-    SETTING_TYPE_SPACE
+    SETTING_TYPE_SPACE,
 } SettingType;
 
 typedef struct {
@@ -39,6 +40,10 @@ typedef struct {
     char* name;
     union {
         int button;
+        struct {
+            char** str;
+            int* data;
+        } combobox;
         int* option;
         SliderData* slider;
     } data;

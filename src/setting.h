@@ -27,6 +27,9 @@ typedef struct {
 #if !defined(__PSP__) && !defined(__vita__)
     int fullscreen;
 #endif
+#if !defined(__PSP__)
+    char* language;
+#endif
     int music_volume;
     int sfx_volume;
 #if defined(__PSP__) || defined(__vita__)
@@ -37,6 +40,7 @@ typedef struct {
 } Setting;
 
 void InitSetting();
+void SetSettingLanguage(char* lang);
 void SaveSetting();
 
 #endif
