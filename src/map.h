@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_TILEMAP_H_
-#define _TH_TILEMAP_H_
+#ifndef TH_MAP_H_
+#define TH_MAP_H_
 
 #include "entities/base.h"
 #include <SDL.h>
@@ -35,13 +35,13 @@ typedef cute_tiled_tile_descriptor_t TileDescriptor;
 typedef cute_tiled_frame_t TileFrame;
 typedef cute_tiled_tileset_t Tileset;
 
-typedef enum {
+typedef enum TilemapLayerGroup{
     TILEMAP_LAYERGROUP_FRONT,
     TILEMAP_LAYERGROUP_MIDDLE,
     TILEMAP_LAYERGROUP_BACK
 } TilemapLayerGroup;
 
-typedef struct {
+typedef struct Map {
     EntityList entity_list;
     Tilemap* tilemap;
 #if !defined(__PSP__)

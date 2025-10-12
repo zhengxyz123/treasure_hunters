@@ -130,14 +130,16 @@ void SettingSceneInit() {
 void SettingSceneTick(float dt) {
     int win_w, win_h;
     SDL_GetWindowSize(game_app.window, &win_w, &win_h);
-    SetFontStyle(TTF_STYLE_BOLD);
 #if defined(__PSP__)
+    float space = 1.5;
     int text_size = 16, char_h = 24;
     SetFontSize(text_size);
 #elif defined(__vita__)
-    int text_size = 28, char_h = 41;
+    float space = 1.7;
+    int text_size = 30, char_h = 36;
     SetFontSize(text_size);
 #else
+    float space = 1.7;
     int text_w1, text_w2, test_h, text_h1, text_h2;
     SetFontSize(24);
     MeasureTextSize(
@@ -154,9 +156,9 @@ void SettingSceneTick(float dt) {
     MeasureTextSize("M", NULL, &test_h);
     // cannot draw all setting items in the whole window, calculate font size
     // again
-    if ((1.5 * SDL_arraysize(settings_array) - 0.5) * test_h > 0.95 * win_h) {
+    if ((space * SDL_arraysize(settings_array) - 0.5) * test_h > 0.9 * win_h) {
         int desired_h =
-            0.95 * win_h / ((1.5 * SDL_arraysize(settings_array) - 0.5));
+            0.9 * win_h / ((space * SDL_arraysize(settings_array) - (space - 1)));
         text_size =
             24 + ((32 - 24) * (desired_h - text_h1)) / (text_h2 - text_h1);
         SetFontSize(text_size);
@@ -165,7 +167,7 @@ void SettingSceneTick(float dt) {
     MeasureTextSize("M", NULL, &char_h);
 #endif
     int widget_y =
-        (win_h - (1.5 * SDL_arraysize(settings_array) - 0.5) * char_h) / 2;
+        (win_h - (space * SDL_arraysize(settings_array) - (space - 1)) * char_h) / 2;
 #if defined(__PSP__)
     int slider_w = 200;
 #else
@@ -187,7 +189,7 @@ void SettingSceneTick(float dt) {
                 )) {
                 button_clicked = settings_array[i].data.button;
             }
-            widget_y += text_h * 1.5;
+            widget_y += text_h * space;
             break;
         case SETTING_TYPE_COMBOBOX:
             MeasureTextSize(
@@ -203,7 +205,7 @@ void SettingSceneTick(float dt) {
                 win_w / 2.0 - 10, widget_y,
                 TransaltionGetText(settings_array[i].name)
             );
-            widget_y += text_h * 1.5;
+            widget_y += text_h * space;
             break;
         case SETTING_TYPE_OPTION:
             MeasureTextSize(
@@ -220,7 +222,7 @@ void SettingSceneTick(float dt) {
                 win_w / 2.0 - 10, widget_y,
                 TransaltionGetText(settings_array[i].name)
             );
-            widget_y += text_h * 1.5;
+            widget_y += text_h * space;
             break;
         case SETTING_TYPE_SLIDER:
             MeasureTextSize(
@@ -236,7 +238,7 @@ void SettingSceneTick(float dt) {
                 win_w / 2.0 - 10, widget_y,
                 TransaltionGetText(settings_array[i].name)
             );
-            widget_y += text_h * 1.5;
+            widget_y += text_h * space;
             break;
         case SETTING_TYPE_SUBTITLE:
             MeasureTextSize(
@@ -248,17 +250,16 @@ void SettingSceneTick(float dt) {
                 win_w / 2.0, widget_y,
                 TransaltionGetText(settings_array[i].name)
             );
-            widget_y += text_h * 1.5;
+            widget_y += text_h * space;
             break;
         case SETTING_TYPE_SPACE:
             MeasureTextSize(" ", NULL, &text_h);
-            widget_y += text_h * 1.5;
+            widget_y += text_h * space;
             break;
         }
     }
     WidgetEnd();
     SetFontAnchor(TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP);
-    SetFontStyle(TTF_STYLE_NORMAL);
     if (button_clicked == 1) {
         fullscreen_data = 0;
         music_volume_data.now = 64.0;

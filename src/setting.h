@@ -20,10 +20,10 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SETTING_H_
-#define _TH_SETTING_H_
+#ifndef TH_SETTING_H_
+#define TH_SETTING_H_
 
-typedef struct {
+typedef struct Setting {
 #if !defined(__PSP__) && !defined(__vita__)
     int fullscreen;
 #endif

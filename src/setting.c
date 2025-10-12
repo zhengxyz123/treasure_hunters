@@ -69,17 +69,12 @@ void InitSetting() {
 #if !defined(__PSP__)
     if ((object = cJSON_GetObjectItem(setting_json, "language")) != NULL) {
         if (cJSON_IsString(object)) {
-            int len = strlen(object->valuestring);
-            game_setting.language = calloc(len, sizeof(char));
-            strncpy(game_setting.language, object->valuestring, len);
-            game_setting.language[len] = 0;
+            SetSettingLanguage(object->valuestring);
         } else {
-            game_setting.language = calloc(6, sizeof(char));
-            strncpy(game_setting.language, "en_us", 6);
+            SetSettingLanguage("en_us");
         }
     } else {
-        game_setting.language = calloc(6, sizeof(char));
-        strncpy(game_setting.language, "en_us", 6);
+        SetSettingLanguage("en_us");
     }
 #endif
     if ((object = cJSON_GetObjectItem(setting_json, "music_volume")) != NULL) {
@@ -113,9 +108,11 @@ void InitSetting() {
 
 void SetSettingLanguage(char* lang) {
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
-    free(game_setting.language);
+    if (game_setting.language) {
+        free(game_setting.language);
+    }
     int len = strlen(lang);
-    game_setting.language = calloc(len, sizeof(char));
+    game_setting.language = calloc(len + 1, sizeof(char));
     memcpy(game_setting.language, lang, len);
     game_setting.language[len] = 0;
 #endif

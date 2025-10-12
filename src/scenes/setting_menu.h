@@ -20,13 +20,13 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SETTING_MENU_H_
-#define _TH_SETTING_MENU_H_
+#ifndef TH_SCENE_SETTING_MENU_H_
+#define TH_SCENE_SETTING_MENU_H_
 
 #include "../ui/widget.h"
 #include "scene.h"
 
-typedef enum {
+typedef enum SettingType {
     SETTING_TYPE_BUTTON,
     SETTING_TYPE_COMBOBOX,
     SETTING_TYPE_OPTION,
@@ -35,7 +35,7 @@ typedef enum {
     SETTING_TYPE_SPACE,
 } SettingType;
 
-typedef struct {
+typedef struct SettingItem {
     SettingType type;
     char* name;
     union {

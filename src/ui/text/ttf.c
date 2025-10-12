@@ -48,7 +48,7 @@ void InitTTFText() {
     return;
 #else
     font.mem = RespackGetItem(
-        game_app.assets_pack, "fonts/NotoSerifCJK.ttc", &font.mem_size
+        game_app.assets_pack, "fonts/NotoSansMonoCJK.ttc", &font.mem_size
     );
     font.src = SDL_RWFromMem(font.mem, font.mem_size);
     font.font = TTF_OpenFontIndexRW(font.src, 1, 32, FONTFACE_NOTOCJK_JP);

@@ -77,9 +77,12 @@ void HandleSceneEvent(SDL_Event* event) {
         scene_array[now_scene]->mouse_x = mouse_x;
         scene_array[now_scene]->mouse_y = mouse_y;
     }
+    if (scene_array[now_scene]->event_handler) {
+        scene_array[now_scene]->event_handler(event);
+    }
     switch (event->type) {
     case SDL_WINDOWEVENT:
-        if (scene_array[now_scene]->on_window_resize != NULL) {
+        if (scene_array[now_scene]->on_window_resize) {
             if (event->window.event == SDL_WINDOWEVENT_RESIZED) {
                 scene_array[now_scene]->on_window_resize(
                     event->window.data1, event->window.data2
@@ -88,19 +91,19 @@ void HandleSceneEvent(SDL_Event* event) {
         }
         break;
     case SDL_KEYDOWN:
-        if (scene_array[now_scene]->on_key_down != NULL) {
+        if (scene_array[now_scene]->on_key_down) {
             scene_array[now_scene]->on_key_down(event->key.keysym.sym);
         }
         break;
     case SDL_KEYUP:
-        if (scene_array[now_scene]->on_key_up != NULL) {
+        if (scene_array[now_scene]->on_key_up) {
             scene_array[now_scene]->on_key_up(event->key.keysym.sym);
         }
         break;
     case SDL_MOUSEMOTION:
         scene_array[now_scene]->mouse_x = event->motion.x;
         scene_array[now_scene]->mouse_y = event->motion.y;
-        if (scene_array[now_scene]->on_mouse_motion != NULL) {
+        if (scene_array[now_scene]->on_mouse_motion) {
             scene_array[now_scene]->on_mouse_motion(
                 event->motion.x, event->motion.y, event->motion.xrel,
                 event->motion.yrel
@@ -108,7 +111,7 @@ void HandleSceneEvent(SDL_Event* event) {
         }
         break;
     case SDL_MOUSEBUTTONDOWN:
-        if (scene_array[now_scene]->on_mouse_down != NULL) {
+        if (scene_array[now_scene]->on_mouse_down) {
             scene_array[now_scene]->on_mouse_down(
                 event->button.x, event->button.y, event->button.button,
                 event->button.clicks
@@ -116,7 +119,7 @@ void HandleSceneEvent(SDL_Event* event) {
         }
         break;
     case SDL_MOUSEBUTTONUP:
-        if (scene_array[now_scene]->on_mouse_up != NULL) {
+        if (scene_array[now_scene]->on_mouse_up) {
             scene_array[now_scene]->on_mouse_up(
                 event->button.x, event->button.y, event->button.button,
                 event->button.clicks
@@ -124,7 +127,7 @@ void HandleSceneEvent(SDL_Event* event) {
         }
         break;
     case SDL_MOUSEWHEEL:
-        if (scene_array[now_scene]->on_mouse_scroll != NULL) {
+        if (scene_array[now_scene]->on_mouse_scroll) {
             scene_array[now_scene]->on_mouse_scroll(
                 scene_array[now_scene]->mouse_x,
                 scene_array[now_scene]->mouse_y, event->wheel.x, event->wheel.y
@@ -132,19 +135,19 @@ void HandleSceneEvent(SDL_Event* event) {
         }
         break;
     case SDL_CONTROLLERAXISMOTION:
-        if (scene_array[now_scene]->on_caxis_motion != NULL) {
+        if (scene_array[now_scene]->on_caxis_motion) {
             scene_array[now_scene]->on_caxis_motion(
                 event->caxis.axis, event->caxis.value
             );
         }
         break;
     case SDL_CONTROLLERBUTTONDOWN:
-        if (scene_array[now_scene]->on_cbutton_down != NULL) {
+        if (scene_array[now_scene]->on_cbutton_down) {
             scene_array[now_scene]->on_cbutton_down(event->cbutton.button);
         }
         break;
     case SDL_CONTROLLERBUTTONUP:
-        if (scene_array[now_scene]->on_cbutton_up != NULL) {
+        if (scene_array[now_scene]->on_cbutton_up) {
             scene_array[now_scene]->on_cbutton_up(event->cbutton.button);
         }
         break;

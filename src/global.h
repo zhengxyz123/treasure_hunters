@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_GLOBAL_H_
-#define _TH_GLOBAL_H_
+#ifndef TH_GLOBAL_H_
+#define TH_GLOBAL_H_
 
 #include <SDL.h>
 
@@ -44,12 +44,12 @@
 #define MUSIC_CHANNEL 0
 #define SFX_CHANNEL 1
 
-typedef enum {
+typedef enum GameStatus {
     GAMESTATUS_NORMAL,
     GAMESTATUS_KEY_BINDING,
 } GameStatus;
 
-typedef struct {
+typedef struct GameApp{
     int argc;
     char** argv;
     char* exec_path;

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
-if(DEFINED BUILD_VITA)
+option(BUILD_VITA "Build executable files for PS Vita" OFF)
+if(BUILD_VITA)
   if(DEFINED ENV{VITASDK})
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VITASDK}/share/vita.toolchain.cmake" CACHE PATH "toolchain file")
     include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
@@ -53,28 +54,25 @@ add_library(cjson ${CJSON_DIR}/cJSON.c ${CJSON_DIR}/cJSON.h)
 include_directories(${CMAKE_SOURCE_DIR}/external)
 aux_source_directory(src BASE_DIR)
 aux_source_directory(src/entities ENTITIES_DIR)
+aux_source_directory(src/image IMAGE_DIR)
 aux_source_directory(src/resources RES_DIR)
 aux_source_directory(src/scenes SCENES_DIR)
 aux_source_directory(src/ui UI_DIR)
 aux_source_directory(src/ui/text UI_TEXT_DIR)
 
 if(PSP)
-    add_custom_target(
-        generate_respack
-        COMMAND ${CMAKE_SOURCE_DIR}/tools/respack.py gen --psp ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/assets.rpkg
-        COMMENT "Generate resource pack"
-        VERBATIM
-    )
+    set(RESPACK_FLAGS "--psp")
 else()
-    add_custom_target(
-        generate_respack
-        COMMAND ${CMAKE_SOURCE_DIR}/tools/respack.py gen ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/assets.rpkg
-        COMMENT "Generate resource pack"
-        VERBATIM
-    )
+    set(RESPACK_FLAGS "")
 endif()
+add_custom_target(
+    generate_respack
+    COMMAND ${CMAKE_SOURCE_DIR}/tools/respack.py gen ${RESPACK_FLAGS} ${CMAKE_SOURCE_DIR}/resources ${CMAKE_BINARY_DIR}/assets.rpkg
+    COMMENT "Generate resource pack"
+    VERBATIM
+)
 
-add_executable(${PROJECT_NAME} ${BASE_DIR} ${ENTITIES_DIR} ${RES_DIR} ${SCENES_DIR} ${UI_DIR} ${UI_TEXT_DIR})
+add_executable(${PROJECT_NAME} ${BASE_DIR} ${ENTITIES_DIR} ${IMAGE_DIR} ${RES_DIR} ${SCENES_DIR} ${UI_DIR} ${UI_TEXT_DIR})
 add_dependencies(${PROJECT_NAME} generate_respack)
 if(NOT PSP AND NOT VITA)
     target_link_libraries(${PROJECT_NAME} 

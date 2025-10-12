@@ -236,7 +236,7 @@ int WidgetIsHovering() {
 void CalcButtonTextSize(char* str, int* w, int* h) {
     FontConfig prev_cfg;
     GetCurrentFontConfig(&prev_cfg);
-    SetFontStyle(TTF_STYLE_BOLD);
+    SetFontStyle(TTF_STYLE_NORMAL);
     MeasureTextSize(str, w, h);
     SetFontStyle(prev_cfg.style);
 }
@@ -247,7 +247,7 @@ int WidgetButton(float x, float y, char* str, int disabled) {
     int text_w, text_h;
     FontConfig prev_cfg;
     GetCurrentFontConfig(&prev_cfg);
-    SetFontStyle(TTF_STYLE_BOLD);
+    SetFontStyle(TTF_STYLE_NORMAL);
     SetFontAnchor(TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP);
     MeasureTextSize(str, &text_w, &text_h);
     if (disabled) {
@@ -299,7 +299,7 @@ int WidgetComboBox(float x, float y, char** choices, int* data) {
     SDL_FRect box = {x, y, w, h};
     FontConfig prev_cfg;
     GetCurrentFontConfig(&prev_cfg);
-    SetFontStyle(TTF_STYLE_BOLD);
+    SetFontStyle(TTF_STYLE_NORMAL);
     SetFontAnchor(TEXT_ANCHOR_X_LEFT | TEXT_ANCHOR_Y_TOP);
     if (ctx.should_update_widgets) {
         AppendWidget(&box);

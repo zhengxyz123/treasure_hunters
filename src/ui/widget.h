@@ -20,12 +20,12 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_UI_WIDGET_H_
-#define _TH_UI_WIDGET_H_
+#ifndef TH_UI_WIDGET_H_
+#define TH_UI_WIDGET_H_
 
 #include <SDL.h>
 
-typedef struct {
+typedef struct SliderData {
     int is_dragging;
     float min;
     float max;

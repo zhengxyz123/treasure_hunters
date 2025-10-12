@@ -21,8 +21,8 @@
 */
 
 #include "player.h"
+#include "../map.h"
 #include "../resources/loader.h"
-#include "base.h"
 #include <assert.h>
 
 SDL_Texture* captain_texture = NULL;
@@ -35,13 +35,17 @@ void FreePlayerTexture() {
     SDL_DestroyTexture(captain_texture);
 }
 
-Entity* CreatePLayerEntity() {
+Entity* CreatePLayerEntity(Map* map) {
     Entity* player = calloc(1, sizeof(Entity));
     player->type = ENTITY_TYPE_PLAYER;
+    player->map = map;
     PlayerUserData* data = calloc(1, sizeof(PlayerUserData));
+    data->dummy = 42;
     player->userdata = data;
     return player;
 }
+
+void TickPlayer(Entity* player, float dt) {}
 
 void DrawPlayerEntity(Entity* player) {
     assert(player->type == ENTITY_TYPE_PLAYER);

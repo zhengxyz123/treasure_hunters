@@ -20,21 +20,22 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_ENTITIES_PLAYER_H_
-#define _TH_ENTITIES_PLAYER_H_
+#ifndef TH_ENTITIES_PLAYER_H_
+#define TH_ENTITIES_PLAYER_H_
 
 #include "../global.h"
 #include "base.h"
 
 extern GameApp game_app;
 
-typedef struct {
+typedef struct PlayerUserData {
     int dummy;
 } PlayerUserData;
 
 void InitPlayerTexture();
 void FreePlayerTexture();
-Entity* CreatePLayerEntity();
+Entity* CreatePLayerEntity(Map* map);
+void TickPlayer(Entity* player, float dt);
 void DrawPlayerEntity(Entity* player);
 void DestroyPlayerEntity(Entity* player);
 

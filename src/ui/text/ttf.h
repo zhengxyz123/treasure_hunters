@@ -20,12 +20,12 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_TEXT_TTF_H_
-#define _TH_TEXT_TTF_H_
+#ifndef TH_UI_TEXT_TTF_H_
+#define TH_UI_TEXT_TTF_H_
 
 #include <SDL.h>
 
-typedef enum {
+typedef enum FontFaceIndex {
     FONTFACE_NOTOCJK_JP,
     FONTFACE_NOTOCJK_KR,
     FONTFACE_NOTOCJK_SC,
@@ -33,7 +33,7 @@ typedef enum {
     FONTFACE_NOTOCJK_HK
 } FontFaceIndex;
 
-typedef struct {
+typedef struct FontConfig {
     int align;
     int anchor;
     int size;

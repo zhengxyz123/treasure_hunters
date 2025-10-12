@@ -25,10 +25,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#define ForEachEntity(element, list)                                           \
-    for (EntityListNode* element = list ? (list)->next : NULL; element;        \
-         element = (element)->next)
-
 void InitEntitySystem() {
     InitPlayerTexture();
 }
@@ -68,6 +64,25 @@ void RemoveEntityInList(EntityList list, Entity* entity) {
             return;
         }
         prev = node;
+    }
+}
+
+void TickEntityList(EntityList list, float dt) {
+    for (EntityListNode* node = list->next; node; node = node->next) {
+        Entity* entity = node->data;
+        switch (entity->type) {
+        case ENTITY_TYPE_PLAYER:
+            TickPlayer(entity, dt);
+            break;
+        }
+    }
+}
+
+void HandleEntityEvent(EntityList list, SDL_Event* event) {
+    for (EntityListNode* node = list->next; node; node = node->next) {
+        if (node->data->event_handler) {
+            node->data->event_handler(event);
+        }
     }
 }
 

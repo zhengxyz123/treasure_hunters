@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_RESPACK_H_
-#define _TH_RESPACK_H_
+#ifndef TH_RESOURCES_RESPACK_H_
+#define TH_RESOURCES_RESPACK_H_
 
 #include <stdint.h>
 #include <stdio.h>
@@ -33,7 +33,7 @@
 // `tools/respack.py`
 #pragma pack(8)
 
-typedef struct {
+typedef struct RespackHeader{
     char magic[4];
     uint8_t version;
     uint16_t entry_count;
@@ -41,7 +41,7 @@ typedef struct {
     uint32_t value_index_offset;
 } RespackHeader;
 
-typedef struct {
+typedef struct RespackEntry {
     uint32_t key_offset;
     uint8_t key_length;
     uint32_t key_hash;
@@ -51,7 +51,7 @@ typedef struct {
 
 #pragma pack()
 
-typedef struct {
+typedef struct Respack {
     FILE* fp;
     RespackHeader header;
     RespackEntry* entries;

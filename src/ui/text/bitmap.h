@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_TEXT_BITMAP_H_
-#define _TH_TEXT_BITMAP_H_
+#ifndef _TH_UI_TEXT_BITMAP_H_
+#define _TH_UI_TEXT_BITMAP_H_
 
 #include <SDL.h>
 
@@ -30,7 +30,7 @@
 #define SMALL_TEXT_WIDTH 8
 #define SMALL_TEXT_HEIGHT 8
 
-typedef struct {
+typedef struct BitmapTextStyle {
     float size;
     int char_space;
     int line_space;
@@ -42,7 +42,7 @@ typedef struct {
     SDL_Color shadow_color;
 } BitmapTextStyle;
 
-typedef enum {
+typedef enum IconID {
     ICON_LEFT,
     ICON_RIGHT,
     ICON_DOWN,

@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_TEXT_TEXT_H_
-#define _TH_TEXT_TEXT_H_
+#ifndef TH_UI_TEXT_H_
+#define TH_UI_TEXT_H_
 
 #include <SDL.h>
 

@@ -123,14 +123,14 @@ int RespackHasItem(Respack* rpkg, char* key, size_t* index) {
   `length` is a pointer filled with length of asset, can be `NULL`.
   Returns a pointer to the asset's address.
 
-  If `length==0` or the return value is `NULL`, the asset may not exist or the
+  If `length==0` and return value is `NULL`, the asset may not exist or the
   resource pack format may be invalid.
 */
 void* RespackGetItem(Respack* rpkg, char* key, size_t* length) {
     size_t index;
     if (!RespackHasItem(rpkg, key, &index)) {
         if (length) {
-            length = 0;
+            *length = 0;
         }
         return NULL;
     }
@@ -143,11 +143,13 @@ void* RespackGetItem(Respack* rpkg, char* key, size_t* length) {
     fread(data, 1, entry->value_length, rpkg->fp);
     if (feof(rpkg->fp) || ferror(rpkg->fp)) {
         if (length) {
-            length = 0;
+            *length = 0;
         }
         return NULL;
     }
-    *length = entry->value_length;
+    if (length) {
+        *length = entry->value_length;
+    }
     return data;
 }
 

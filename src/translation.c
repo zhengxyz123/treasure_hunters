@@ -38,6 +38,9 @@ cJSON* LoadTranslation(char* lang) {
 #endif
     size_t size;
     void* content = RespackGetItem(game_app.assets_pack, filename, &size);
+    if (size == 0) {
+        content = RespackGetItem(game_app.assets_pack, "i18n/en_us.json", &size);
+    }
     free(filename);
     return cJSON_ParseWithLength(content, size);
 }
@@ -54,13 +57,17 @@ void QuitTranslation() {
 void SetTranslationLanguage(char* lang) {
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     lang_pack = LoadTranslation(lang);
-    if (strcmp(lang, "zh_cn") == 0) {
+    switch (fnv1a_32(lang, FNV1_32_INIT)) {
+    case 432070101: // zh_cn
         ReloadFont(FONTFACE_NOTOCJK_SC);
-    } else if (strcmp(lang, "zh_tw") == 0) {
-        ReloadFont(FONTFACE_NOTOCJK_TC);
-    } else if (strcmp(lang, "zh_hk") == 0) {
+        break;
+    case 348917481: // zh_hk
         ReloadFont(FONTFACE_NOTOCJK_HK);
-    } else {
+        break;
+    case 283778481: // zh_tw
+        ReloadFont(FONTFACE_NOTOCJK_TC);
+        break;
+    default:
         ReloadFont(FONTFACE_NOTOCJK_JP);
     }
 #endif

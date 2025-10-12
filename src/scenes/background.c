@@ -23,7 +23,7 @@
 #include "background.h"
 #include "../global.h"
 #include "../resources/loader.h"
-#include "../ui/animation.h"
+#include "../image/animation.h"
 
 extern GameApp game_app;
 

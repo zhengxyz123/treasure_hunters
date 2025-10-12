@@ -163,9 +163,13 @@ def _subcmd_gen(args: argparse.Namespace) -> int:
                 continue
             elif args.psp and key.match("*.ttc"):
                 continue
+            elif args.psp and key.is_relative_to("i18n/") and key.name != "en_us.json":
+                continue
             elif key.match("*.json"):
                 content = (root / file).read_text()
-                value = json.dumps(json.loads(content), separators=(",", ":"), ensure_ascii=False).encode()
+                value = json.dumps(
+                    json.loads(content), separators=(",", ":"), ensure_ascii=False
+                ).encode()
             elif key.match("*.tmx"):
                 fd, map_path = tempfile.mkstemp()
                 os.close(fd)
@@ -199,7 +203,9 @@ def _main() -> int:
     subparser = parser.add_subparsers(required=True)
 
     parser_gen = subparser.add_parser("gen", help="generate resource pack")
-    parser_gen.add_argument("--psp", help="specific option for PSP", action="store_true")
+    parser_gen.add_argument(
+        "--psp", help="specific option for PSP", action="store_true"
+    )
     parser_gen.add_argument("src", help="source directory")
     parser_gen.add_argument("dest", help="output file", type=argparse.FileType("wb"))
     parser_gen.set_defaults(func=_subcmd_gen)

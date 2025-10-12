@@ -20,20 +20,23 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_ENTITIES_BASE_H_
-#define _TH_ENTITIES_BASE_H_
+#ifndef TH_ENTITIES_BASE_H_
+#define TH_ENTITIES_BASE_H_
 
 #include <SDL.h>
 
-typedef enum {
+struct Map;
+typedef struct Map Map;
+
+typedef enum EntityType{
     ENTITY_TYPE_PLAYER
 } EntityType;
 
-typedef enum {
+typedef enum EntityStatus {
     ENTITY_STATUS_HURT
 } EntityStatus;
 
-typedef struct {
+typedef struct Entity {
     size_t id;
     EntityType type;
     EntityStatus status;
@@ -46,6 +49,8 @@ typedef struct {
         float cooldown_time;
         float immortal_time;
     } take_damage;
+    void (*event_handler)(SDL_Event*);
+    Map* map;
     void* userdata;
 } Entity;
 
@@ -56,12 +61,18 @@ typedef struct EntityListNode {
 
 typedef EntityListNode* EntityList;
 
+#define ForEachEntity(element, list)                                           \
+    for (EntityListNode* element = list ? (list)->next : NULL; element;        \
+         element = (element)->next)
+
 void InitEntitySystem();
 void QuitEntitySystem();
 EntityList CreateEntityList();
 void FreeEntityList(EntityList list);
 void AddEntityToList(EntityList list, Entity* entity);
 void RemoveEntityInList(EntityList list, Entity* entity);
+void TickEntityList(EntityList list, float dt);
+void HandleEntityEvent(EntityList list, SDL_Event* event);
 void DestroyEntity(Entity* entity);
 void DrawEntity(Entity* entity);
 

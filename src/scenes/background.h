@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SCENE_BACKGROUND_H_
-#define _TH_SCENE_BACKGROUND_H_
+#ifndef TH_SCENE_BACKGROUND_H_
+#define TH_SCENE_BACKGROUND_H_
 
 void InitBackground();
 void QuitBackground();

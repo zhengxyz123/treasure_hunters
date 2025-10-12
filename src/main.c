@@ -173,14 +173,14 @@ int main(int argc, char* argv[]) {
     Mix_Volume(SFX_CHANNEL, game_setting.sfx_volume);
 #endif
 
-    /* setup game engine */
+    // initialise subsystems
     scene_array[START_SCENE] = &start_scene;
     scene_array[SETTING_SCENE] = &setting_scene;
     scene_array[WORLD_SCENE] = &world_scene;
-    InitTranslation();
-    InitMapSystem();
     InitEntitySystem();
+    InitMapSystem();
     InitSceneSystem();
+    InitTranslation();
     InitUISystem();
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     SetTranslationLanguage(game_setting.language);

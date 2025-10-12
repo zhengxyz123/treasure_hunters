@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_LOADER_H_
-#define _TH_LOADER_H_
+#ifndef TH_RESOURCES_LOADER_H_
+#define TH_RESOURCES_LOADER_H_
 
 #include <SDL.h>
 #include <SDL_mixer.h>

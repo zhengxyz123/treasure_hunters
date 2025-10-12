@@ -20,8 +20,8 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_I18N_H_
-#define _TH_I18N_H_
+#ifndef TH_TRANSLATION_H_
+#define TH_TRANSLATION_H_
 
 #include <cjson/cJSON.h>
 

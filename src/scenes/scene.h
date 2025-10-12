@@ -20,26 +20,28 @@
   THE SOFTWARE.
 */
 
-#ifndef _TH_SCENE_SCENE_H_
-#define _TH_SCENE_SCENE_H_
+#ifndef TH_SCENE_H_
+#define TH_SCENE_H_
 
 #include <SDL.h>
 
 #define MAX_SCENE 16
 
-typedef enum {
+typedef enum SceneID {
     START_SCENE,
     SETTING_SCENE,
     WORLD_SCENE,
     LAST_SCENE
 } SceneID;
 
-typedef struct {
+typedef struct Scene {
     int mouse_x;
     int mouse_y;
     void (*init)(void);
     void (*tick)(float dt);
     void (*free)(void);
+    // `event_handler` method only works on world scene
+    void (*event_handler)(SDL_Event*);
     void (*on_window_resize)(int, int);
     void (*on_key_down)(SDL_KeyCode);
     void (*on_key_up)(SDL_KeyCode);
