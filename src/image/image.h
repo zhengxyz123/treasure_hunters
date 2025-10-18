@@ -20,10 +20,14 @@
   THE SOFTWARE.
 */
 
-#ifndef TH_IMAGE_ANIMATION_H_
-#define TH_IMAGE_ANIMATION_H_
+#ifndef TH_IMAGE_IMAGE_H_
+#define TH_IMAGE_IMAGE_H_
 
 #include <SDL.h>
+
+#define RectFromImageGrid(img_width, img_height, rows, columns, x, y)          \
+    {(x) * ((img_width) / (columns)), (y) * ((img_height) / (rows)),           \
+     (img_width) / (columns), (img_height) / (rows)}
 
 typedef struct AnimationClip {
     float duration;
@@ -39,6 +43,24 @@ typedef struct Animation {
     AnimationClip* clip;
 } Animation;
 
+typedef enum SpriteType {
+    SPRITE_TYPE_TEXTURE,
+    SPRITE_TYPE_ANIMATION
+} SpriteType;
+
+typedef struct Sprite {
+    SpriteType type;
+    union {
+        Animation* animation;
+        SDL_Texture* texture;
+    } image;
+    SDL_FRect area;
+    SDL_FPoint center;
+    float angle;
+    SDL_Color color;
+    SDL_RendererFlip flip;
+} Sprite;
+
 Animation* CreateAnimation(
     SDL_Texture* texture, float duration, SDL_Rect* rect, int count
 );
@@ -48,5 +70,12 @@ void DrawAnimationEx(
     SDL_FPoint* center, SDL_RendererFlip flip
 );
 void DrawAnimation(Animation* animation, float x, float y, float scale);
+
+Sprite* CreateTextureSprite(SDL_Texture* texture);
+Sprite* CreateAnimationSprite(Animation* animation);
+void FreeSprite(Sprite* sprite);
+void SetSpritePosition(Sprite* sprite, float x, float y);
+void SetSpriteSize(Sprite* sprite, float w, float h);
+void DrawSprite(Sprite* sprite);
 
 #endif

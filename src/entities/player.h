@@ -25,18 +25,21 @@
 
 #include "../global.h"
 #include "base.h"
+#include <SDL.h>
 
 extern GameApp game_app;
 
 typedef struct PlayerUserData {
-    int dummy;
+    int facing_right;
+    int with_sword;
 } PlayerUserData;
 
 void InitPlayerTexture();
 void FreePlayerTexture();
-Entity* CreatePLayerEntity(Map* map);
+Entity* CreatePLayerEntity(Map* map, float x, float y);
 void TickPlayer(Entity* player, float dt);
+void HandlePlayerEvent(Entity* player, SDL_Event* event);
 void DrawPlayerEntity(Entity* player);
-void DestroyPlayerEntity(Entity* player);
+void FreePlayerEntity(Entity* player);
 
 #endif

@@ -24,9 +24,8 @@
   Draw bitmap fonts.
 */
 
-#include "bitmap.h"
 #include "../../global.h"
-#include "../../resources/loader.h"
+#include "../../resource/loader.h"
 #include "text.h"
 #include <assert.h>
 #include <stdio.h>

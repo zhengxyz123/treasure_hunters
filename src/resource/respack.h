@@ -20,38 +20,47 @@
   THE SOFTWARE.
 */
 
-#ifndef TH_UI_TEXT_TTF_H_
-#define TH_UI_TEXT_TTF_H_
+#ifndef TH_RESOURCES_RESPACK_H_
+#define TH_RESOURCES_RESPACK_H_
 
-#include <SDL.h>
+#include <stdint.h>
+#include <stdio.h>
 
-typedef enum FontFaceIndex {
-    FONTFACE_NOTOCJK_JP,
-    FONTFACE_NOTOCJK_KR,
-    FONTFACE_NOTOCJK_SC,
-    FONTFACE_NOTOCJK_TC,
-    FONTFACE_NOTOCJK_HK
-} FontFaceIndex;
+#define FNV1_32_INIT ((uint32_t)0x811c9dc5)
+#define FNV1_32_PRIME ((uint32_t)0x01000193)
 
-typedef struct FontConfig {
-    int align;
-    int anchor;
-    int size;
-    int style;
-    SDL_Color color;
-} FontConfig;
+// please note this alignment, it should have the same value as `_pack_` in
+// `tools/respack.py`
+#pragma pack(8)
 
-void InitTTFText();
-void QuitTTFText();
-void ReloadFont(long index);
-void SetFontAlign(int align);
-void SetFontAnchor(int anchor);
-void SetFontSize(int size);
-void SetFontStyle(int style);
-void SetFontColor(int r, int g, int b, int a);
-void GetCurrentFontConfig(FontConfig* style);
-int MeasureTextSize(char* str, int* w, int* h);
-void DrawTextWrapped(float x, float y, int max_width, char* format, ...);
-void DrawText(float x, float y, char* format, ...);
+typedef struct RespackHeader {
+    char magic[4];
+    uint8_t version;
+    uint16_t entry_count;
+    uint32_t key_index_offset;
+    uint32_t value_index_offset;
+} RespackHeader;
+
+typedef struct RespackEntry {
+    uint32_t key_offset;
+    uint8_t key_length;
+    uint32_t key_hash;
+    uint32_t value_offset;
+    uint32_t value_length;
+} RespackEntry;
+
+#pragma pack()
+
+typedef struct Respack {
+    FILE* fp;
+    RespackHeader header;
+    RespackEntry* entries;
+} Respack;
+
+uint32_t fnv1a_32(char* str, uint32_t hval);
+Respack* LoadRespack(char* filename);
+int HasRespackItem(Respack* rpkg, char* key, size_t* index);
+void* GetRespackItem(Respack* rpkg, char* key, size_t* length);
+void FreeRespack(Respack* rpkg);
 
 #endif

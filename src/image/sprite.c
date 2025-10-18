@@ -20,9 +20,9 @@
   THE SOFTWARE.
 */
 
-#include "sprite.h"
 #include "../global.h"
 #include "frametimer.h"
+#include "image.h"
 
 extern GameApp game_app;
 

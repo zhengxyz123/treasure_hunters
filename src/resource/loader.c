@@ -34,7 +34,7 @@ SDL_Surface* LoadSurfaceFromMem(void* content, size_t size) {
 
 SDL_Surface* LoadSurface(char* filename) {
     size_t size;
-    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
+    void* content = GetRespackItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
         return NULL;
     }
@@ -50,7 +50,7 @@ SDL_Texture* LoadTextureFromMem(void* content, size_t size) {
 
 SDL_Texture* LoadTexture(char* filename) {
     size_t size;
-    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
+    void* content = GetRespackItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
         return NULL;
     }
@@ -66,7 +66,7 @@ Mix_Chunk* LoadSoundFromMem(void* content, size_t size) {
 
 Mix_Chunk* LoadSound(char* filename) {
     size_t size;
-    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
+    void* content = GetRespackItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
         return NULL;
     }

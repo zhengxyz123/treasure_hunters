@@ -21,19 +21,18 @@
 */
 
 /*
-  The widget system supports both mouse and joystick.
+  Draw simple widgets like imgui.
 
-  In order to avoid conflicting operations, mouse input will be ignored when
-  the joystick is connected.
+  The widget system supports both mouse and joystick. In order to avoid
+  conflicting operations, mouse input will be ignored when the joystick is
+  connected.
 */
 
 #include "widget.h"
 #include "../global.h"
-#include "../resources/loader.h"
+#include "../resource/loader.h"
 #include "frametimer.h"
-#include "text/bitmap.h"
 #include "text/text.h"
-#include "text/ttf.h"
 #include <SDL_ttf.h>
 #include <assert.h>
 #include <stdlib.h>

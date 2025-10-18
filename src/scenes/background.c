@@ -22,36 +22,43 @@
 
 #include "background.h"
 #include "../global.h"
-#include "../resources/loader.h"
-#include "../image/animation.h"
+#include "../image/image.h"
+#include "../resource/loader.h"
 
 extern GameApp game_app;
 
-// for DrawBackground()
 SDL_Texture* background_texture = NULL;
-SDL_Texture* small_cloud_texture[3] = {NULL};
+SDL_Texture* small_cloud_texture[3] = {NULL, NULL, NULL};
 float small_cloud_x = 20.0;
 int small_cloud_index = 0;
 SDL_Texture* big_cloud_texture = NULL;
 float big_cloud_x = 0;
 SDL_Texture* water_reflect_big_texture = NULL;
 SDL_Rect water_reflect_big_animation_clip[] = {
-    {0, 0, 170, 10}, {0, 10, 170, 10}, {0, 20, 170, 10}, {0, 30, 170, 10}
+    RectFromImageGrid(170, 40, 4, 1, 0, 0),
+    RectFromImageGrid(170, 40, 4, 1, 0, 1),
+    RectFromImageGrid(170, 40, 4, 1, 0, 2),
+    RectFromImageGrid(170, 40, 4, 1, 0, 3)
 };
 Animation* water_reflect_big_animation = NULL;
 SDL_Texture* water_reflect_medium_texture = NULL;
 SDL_Rect water_reflect_medium_animation_clip[] = {
-    {0, 0, 53, 3}, {0, 3, 53, 3}, {0, 6, 53, 3}, {0, 9, 53, 3}
+    RectFromImageGrid(53, 12, 4, 1, 0, 0),
+    RectFromImageGrid(53, 12, 4, 1, 0, 1),
+    RectFromImageGrid(53, 12, 4, 1, 0, 2),
+    RectFromImageGrid(53, 12, 4, 1, 0, 3),
 };
 Animation* water_reflect_medium_animation = NULL;
 SDL_Texture* water_reflect_small_texture = NULL;
 SDL_Rect water_reflect_small_animation_clip[] = {
-    {0, 0, 35, 3}, {0, 3, 35, 3}, {0, 6, 35, 3}, {0, 9, 35, 3}
+    RectFromImageGrid(35, 12, 4, 1, 0, 0),
+    RectFromImageGrid(35, 12, 4, 1, 0, 1),
+    RectFromImageGrid(35, 12, 4, 1, 0, 2),
+    RectFromImageGrid(35, 12, 4, 1, 0, 3),
 };
 Animation* water_reflect_small_animation = NULL;
 
 void InitBackground() {
-    // for DrawBackground()
     background_texture = LoadTexture("images/background/background_sky.png");
     small_cloud_texture[0] = LoadTexture("images/background/small_cloud1.png");
     small_cloud_texture[1] = LoadTexture("images/background/small_cloud2.png");
@@ -60,23 +67,24 @@ void InitBackground() {
     water_reflect_big_texture =
         LoadTexture("images/background/water_reflect_big.png");
     water_reflect_big_animation = CreateAnimation(
-        water_reflect_big_texture, 0.1, water_reflect_big_animation_clip, 4
+        water_reflect_big_texture, 0.2, water_reflect_big_animation_clip,
+        SDL_arraysize(water_reflect_big_animation_clip)
     );
     water_reflect_medium_texture =
         LoadTexture("images/background/water_reflect_medium.png");
     water_reflect_medium_animation = CreateAnimation(
-        water_reflect_medium_texture, 0.1, water_reflect_medium_animation_clip,
-        4
+        water_reflect_medium_texture, 0.2, water_reflect_medium_animation_clip,
+        SDL_arraysize(water_reflect_medium_animation_clip)
     );
     water_reflect_small_texture =
         LoadTexture("images/background/water_reflect_small.png");
     water_reflect_small_animation = CreateAnimation(
-        water_reflect_small_texture, 0.1, water_reflect_small_animation_clip, 4
+        water_reflect_small_texture, 0.2, water_reflect_small_animation_clip,
+        SDL_arraysize(water_reflect_small_animation_clip)
     );
 }
 
 void QuitBackground() {
-    // for DrawBackground()
     SDL_DestroyTexture(background_texture);
     for (int i = 0; i < SDL_arraysize(small_cloud_texture); ++i) {
         SDL_DestroyTexture(small_cloud_texture[i]);

@@ -22,11 +22,9 @@
 
 #include "setting_menu.h"
 #include "../global.h"
-#include "../resources/respack.h"
 #include "../setting.h"
 #include "../translation.h"
 #include "../ui/text/text.h"
-#include "../ui/text/ttf.h"
 #include "background.h"
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
@@ -36,8 +34,8 @@ extern Setting game_setting;
 
 Scene setting_scene = {
     .init = SettingSceneInit,
-    .tick = SettingSceneTick,
     .free = SettingSceneFree,
+    .tick = SettingSceneTick,
     .on_key_down = SettingSceneOnKeyDown,
     .on_cbutton_down = SettingSceneOnControllerButtonDown
 };
@@ -109,11 +107,9 @@ void SettingSceneInit() {
     fullscreen_data = game_setting.fullscreen;
 #endif
 #if !defined(__PSP__)
-    switch (fnv1a_32(game_setting.language, FNV1_32_INIT)) {
-    case 432070101L: // zh_cn
+    if (SDL_strcmp(game_setting.language, "zh_cn") == 0) {
         lang_data = 1;
-        break;
-    default: // en_us and others
+    } else {
         lang_data = 0;
     }
     prev_lang_data = lang_data;
@@ -126,6 +122,8 @@ void SettingSceneInit() {
     mute_data = game_setting.mute_when_unfocused;
 #endif
 }
+
+void SettingSceneFree() {}
 
 void SettingSceneTick(float dt) {
     int win_w, win_h;
@@ -143,11 +141,11 @@ void SettingSceneTick(float dt) {
     int text_w1, text_w2, test_h, text_h1, text_h2;
     SetFontSize(24);
     MeasureTextSize(
-        TransaltionGetText(settings_array[5].name), &text_w1, &text_h1
+        GetTransaltionText(settings_array[5].name), &text_w1, &text_h1
     );
     SetFontSize(32);
     MeasureTextSize(
-        TransaltionGetText(settings_array[5].name), &text_w2, &text_h2
+        GetTransaltionText(settings_array[5].name), &text_w2, &text_h2
     );
     // calculate a perfect font size using linear function
     int text_size =
@@ -157,8 +155,8 @@ void SettingSceneTick(float dt) {
     // cannot draw all setting items in the whole window, calculate font size
     // again
     if ((space * SDL_arraysize(settings_array) - 0.5) * test_h > 0.9 * win_h) {
-        int desired_h =
-            0.9 * win_h / ((space * SDL_arraysize(settings_array) - (space - 1)));
+        int desired_h = 0.9 * win_h /
+                        ((space * SDL_arraysize(settings_array) - (space - 1)));
         text_size =
             24 + ((32 - 24) * (desired_h - text_h1)) / (text_h2 - text_h1);
         SetFontSize(text_size);
@@ -167,7 +165,9 @@ void SettingSceneTick(float dt) {
     MeasureTextSize("M", NULL, &char_h);
 #endif
     int widget_y =
-        (win_h - (space * SDL_arraysize(settings_array) - (space - 1)) * char_h) / 2;
+        (win_h -
+         (space * SDL_arraysize(settings_array) - (space - 1)) * char_h) /
+        2;
 #if defined(__PSP__)
     int slider_w = 200;
 #else
@@ -181,11 +181,11 @@ void SettingSceneTick(float dt) {
         switch (settings_array[i].type) {
         case SETTING_TYPE_BUTTON:
             CalcButtonTextSize(
-                TransaltionGetText(settings_array[i].name), &text_w, &text_h
+                GetTransaltionText(settings_array[i].name), &text_w, &text_h
             );
             if (WidgetButton(
                     (win_w - text_w) / 2.0, widget_y,
-                    TransaltionGetText(settings_array[i].name), 0
+                    GetTransaltionText(settings_array[i].name), 0
                 )) {
                 button_clicked = settings_array[i].data.button;
             }
@@ -193,7 +193,7 @@ void SettingSceneTick(float dt) {
             break;
         case SETTING_TYPE_COMBOBOX:
             MeasureTextSize(
-                TransaltionGetText(settings_array[i].name), &text_w, &text_h
+                GetTransaltionText(settings_array[i].name), &text_w, &text_h
             );
             WidgetComboBox(
                 win_w / 2.0 + 10, widget_y, settings_array[i].data.combobox.str,
@@ -203,13 +203,13 @@ void SettingSceneTick(float dt) {
             SetFontColor(0, 0, 0, WidgetIsHovering() ? 128 : 255);
             DrawText(
                 win_w / 2.0 - 10, widget_y,
-                TransaltionGetText(settings_array[i].name)
+                GetTransaltionText(settings_array[i].name)
             );
             widget_y += text_h * space;
             break;
         case SETTING_TYPE_OPTION:
             MeasureTextSize(
-                TransaltionGetText(settings_array[i].name), &text_w, &text_h
+                GetTransaltionText(settings_array[i].name), &text_w, &text_h
             );
             WidgetOption(
                 win_w / 2.0 + 10 + text_size / 2.0,
@@ -220,13 +220,13 @@ void SettingSceneTick(float dt) {
             SetFontColor(0, 0, 0, WidgetIsHovering() ? 128 : 255);
             DrawText(
                 win_w / 2.0 - 10, widget_y,
-                TransaltionGetText(settings_array[i].name)
+                GetTransaltionText(settings_array[i].name)
             );
             widget_y += text_h * space;
             break;
         case SETTING_TYPE_SLIDER:
             MeasureTextSize(
-                TransaltionGetText(settings_array[i].name), &text_w, &text_h
+                GetTransaltionText(settings_array[i].name), &text_w, &text_h
             );
             WidgetSlider(
                 win_w / 2.0 + 10, widget_y + (text_h - text_size) / 2.0,
@@ -236,19 +236,19 @@ void SettingSceneTick(float dt) {
             SetFontColor(0, 0, 0, WidgetIsHovering() ? 128 : 255);
             DrawText(
                 win_w / 2.0 - 10, widget_y,
-                TransaltionGetText(settings_array[i].name)
+                GetTransaltionText(settings_array[i].name)
             );
             widget_y += text_h * space;
             break;
         case SETTING_TYPE_SUBTITLE:
             MeasureTextSize(
-                TransaltionGetText(settings_array[i].name), &text_w, &text_h
+                GetTransaltionText(settings_array[i].name), &text_w, &text_h
             );
             SetFontAnchor(TEXT_ANCHOR_X_CENTER | TEXT_ANCHOR_Y_TOP);
             SetFontColor(0, 0, 0, 255);
             DrawText(
                 win_w / 2.0, widget_y,
-                TransaltionGetText(settings_array[i].name)
+                GetTransaltionText(settings_array[i].name)
             );
             widget_y += text_h * space;
             break;
@@ -275,11 +275,11 @@ void SettingSceneTick(float dt) {
 #if !defined(__PSP__)
     if (prev_lang_data != lang_data) {
         switch (lang_data) {
-        case 0: // en_us
+        case 0:
             SetSettingLanguage("en_us");
             SetTranslationLanguage("en_us");
             break;
-        case 1: // zh_cn
+        case 1:
             SetSettingLanguage("zh_cn");
             SetTranslationLanguage("zh_cn");
             break;
@@ -322,8 +322,6 @@ void SettingSceneTick(float dt) {
     game_setting.mute_when_unfocused = mute_data;
 #endif
 }
-
-void SettingSceneFree() {}
 
 void SettingSceneOnKeyDown(SDL_KeyCode key) {
     switch (key) {

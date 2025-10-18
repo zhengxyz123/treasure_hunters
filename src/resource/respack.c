@@ -38,7 +38,7 @@ uint32_t fnv1a_32(char* str, uint32_t hval) {
     unsigned char* s = (unsigned char*)str;
     while (*s) {
         hval ^= (uint32_t)*s++;
-#if defined(NO_FNV_GCC_OPTIMIZATION)
+#if defined(NO_FNV_OPTIMIZATION)
         hval *= FNV1_32_PRIME;
 #else
         hval += (hval << 1) + (hval << 4) + (hval << 7) + (hval << 8) +
@@ -81,7 +81,7 @@ error0:
     return NULL;
 }
 
-int RespackHasItem(Respack* rpkg, char* key, size_t* index) {
+int HasRespackItem(Respack* rpkg, char* key, size_t* index) {
     uint32_t hash = fnv1a_32(key, FNV1_32_INIT);
     int found = 0, count = 0;
     for (size_t i = 0; i < rpkg->header.entry_count; ++i) {
@@ -126,9 +126,9 @@ int RespackHasItem(Respack* rpkg, char* key, size_t* index) {
   If `length==0` and return value is `NULL`, the asset may not exist or the
   resource pack format may be invalid.
 */
-void* RespackGetItem(Respack* rpkg, char* key, size_t* length) {
+void* GetRespackItem(Respack* rpkg, char* key, size_t* length) {
     size_t index;
-    if (!RespackHasItem(rpkg, key, &index)) {
+    if (!HasRespackItem(rpkg, key, &index)) {
         if (length) {
             *length = 0;
         }

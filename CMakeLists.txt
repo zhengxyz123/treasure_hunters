@@ -30,7 +30,9 @@ else()
     pkg_search_module(SDL2 REQUIRED sdl2)
     pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image)
     pkg_search_module(SDL2_MIXER REQUIRED SDL2_mixer)
-    pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
+    if(NOT PSP)
+        pkg_search_module(SDL2_TTF REQUIRED SDL2_ttf)
+    endif()
 endif()
 
 if(MSVC)
@@ -55,7 +57,7 @@ include_directories(${CMAKE_SOURCE_DIR}/external)
 aux_source_directory(src BASE_DIR)
 aux_source_directory(src/entities ENTITIES_DIR)
 aux_source_directory(src/image IMAGE_DIR)
-aux_source_directory(src/resources RES_DIR)
+aux_source_directory(src/resource RESOURCE_DIR)
 aux_source_directory(src/scenes SCENES_DIR)
 aux_source_directory(src/ui UI_DIR)
 aux_source_directory(src/ui/text UI_TEXT_DIR)
@@ -72,7 +74,7 @@ add_custom_target(
     VERBATIM
 )
 
-add_executable(${PROJECT_NAME} ${BASE_DIR} ${ENTITIES_DIR} ${IMAGE_DIR} ${RES_DIR} ${SCENES_DIR} ${UI_DIR} ${UI_TEXT_DIR})
+add_executable(${PROJECT_NAME} ${BASE_DIR} ${ENTITIES_DIR} ${IMAGE_DIR} ${RESOURCE_DIR} ${SCENES_DIR} ${UI_DIR} ${UI_TEXT_DIR})
 add_dependencies(${PROJECT_NAME} generate_respack)
 if(NOT PSP AND NOT VITA)
     target_link_libraries(${PROJECT_NAME} 

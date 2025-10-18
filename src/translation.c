@@ -22,8 +22,8 @@
 
 #include "translation.h"
 #include "global.h"
-#include "resources/respack.h"
-#include "ui/text/ttf.h"
+#include "resource/respack.h"
+#include "ui/text/text.h"
 #include <stdlib.h>
 
 cJSON *lang_pack, *fallback_pack;
@@ -32,14 +32,15 @@ extern GameApp game_app;
 cJSON* LoadTranslation(char* lang) {
     char* filename = calloc(32, sizeof(char));
 #if defined(TH_FALLBACK_TO_BITMAP_FONT)
-    snprintf(filename, 32, "i18n/%s.json", "en_us");
+    strncpy(filename, "i18n/en_us.json", 32);
 #else
     snprintf(filename, 32, "i18n/%s.json", lang);
 #endif
     size_t size;
-    void* content = RespackGetItem(game_app.assets_pack, filename, &size);
+    void* content = GetRespackItem(game_app.assets_pack, filename, &size);
     if (size == 0) {
-        content = RespackGetItem(game_app.assets_pack, "i18n/en_us.json", &size);
+        content =
+            GetRespackItem(game_app.assets_pack, "i18n/en_us.json", &size);
     }
     free(filename);
     return cJSON_ParseWithLength(content, size);
@@ -57,28 +58,24 @@ void QuitTranslation() {
 void SetTranslationLanguage(char* lang) {
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     lang_pack = LoadTranslation(lang);
-    switch (fnv1a_32(lang, FNV1_32_INIT)) {
-    case 432070101: // zh_cn
+    if (strcmp(lang, "zh_cn") == 0) {
         ReloadFont(FONTFACE_NOTOCJK_SC);
-        break;
-    case 348917481: // zh_hk
+    } else if (strcmp(lang, "zh_hk") == 0) {
         ReloadFont(FONTFACE_NOTOCJK_HK);
-        break;
-    case 283778481: // zh_tw
+    } else if (strcmp(lang, "zh_tw") == 0) {
         ReloadFont(FONTFACE_NOTOCJK_TC);
-        break;
-    default:
+    } else {
         ReloadFont(FONTFACE_NOTOCJK_JP);
     }
 #endif
 }
 
-int TranslationHasItem(char* key) {
+int HasTranslationItem(char* key) {
     return cJSON_HasObjectItem(lang_pack, key) ||
            cJSON_HasObjectItem(fallback_pack, key);
 }
 
-char* TransaltionGetText(char* key) {
+char* GetTransaltionText(char* key) {
     if (!cJSON_HasObjectItem(lang_pack, key)) {
         if (!cJSON_HasObjectItem(fallback_pack, key)) {
             return key;

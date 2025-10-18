@@ -38,9 +38,8 @@ typedef struct Scene {
     int mouse_x;
     int mouse_y;
     void (*init)(void);
-    void (*tick)(float dt);
     void (*free)(void);
-    // `event_handler` method only works on world scene
+    void (*tick)(float dt);
     void (*event_handler)(SDL_Event*);
     void (*on_window_resize)(int, int);
     void (*on_key_down)(SDL_KeyCode);

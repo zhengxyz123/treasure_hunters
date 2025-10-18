@@ -35,15 +35,27 @@ typedef cute_tiled_tile_descriptor_t TileDescriptor;
 typedef cute_tiled_frame_t TileFrame;
 typedef cute_tiled_tileset_t Tileset;
 
-typedef enum TilemapLayerGroup{
+typedef enum TilemapLayerGroup {
     TILEMAP_LAYERGROUP_FRONT,
     TILEMAP_LAYERGROUP_MIDDLE,
     TILEMAP_LAYERGROUP_BACK
 } TilemapLayerGroup;
 
+typedef struct CollisionRectNode {
+    SDL_Rect rect;
+    int has_damage;
+    int damage;
+    struct CollisionRectNode* next;
+} CollisionRectNode;
+
+typedef CollisionRectNode* CollisionRectList;
+
 typedef struct Map {
-    EntityList entity_list;
     Tilemap* tilemap;
+    int draw_scale;
+    SDL_Point draw_offset;
+    CollisionRectList collision_list;
+    EntityList entity_list;
 #if !defined(__PSP__)
     struct {
         SDL_Texture* front;
@@ -55,10 +67,11 @@ typedef struct Map {
 
 void InitMapSystem();
 void QuitMapSystem();
-Map* LoadMap_Mem(void* content, size_t size);
+Map* LoadMapFromMem(void* content, size_t size);
 Map* LoadMap(char* filename);
 void FreeMap(Map* map);
-void MapDrawLayer(Map* map, TilemapLayerGroup group, SDL_Point* offset);
+void DrawMapLayer(Map* map, TilemapLayerGroup group);
+int MapIsEmptyEx(Map* map, SDL_FRect* rect, SDL_FRect* union_rect);
 int MapIsEmpty(Map* map, SDL_FRect* rect);
 int MapHasDamage(Map* map, SDL_FRect* rect);
 

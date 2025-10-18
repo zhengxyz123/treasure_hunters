@@ -28,9 +28,10 @@
 extern Scene world_scene;
 
 void WorldSceneInit();
+void WorldSceneFree();
 void WorldSceneTick(float dt);
+void WorldSceneHandleEvent(SDL_Event* event);
 void WorldSceneOnKeyDown(SDL_KeyCode key);
 void WorldSceneOnControllerButtonDown(int button);
-void worldSceneFree();
 
 #endif

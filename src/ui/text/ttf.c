@@ -20,16 +20,18 @@
   THE SOFTWARE.
 */
 
-#include "ttf.h"
+/*
+   Draw TTF font. If defined TH_FALLBACK_TO_BITMAP_FONT, it will fallback to
+   draw bitmap fonts.
+*/
+
 #include "../../global.h"
 #include "text.h"
 #include <SDL_ttf.h>
 #include <stdarg.h>
 
-#if defined(TH_FALLBACK_TO_BITMAP_FONT)
-    #include "bitmap.h"
-#else
-    #include "../../resources/respack.h"
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
+    #include "../../resource/respack.h"
 #endif
 
 extern GameApp game_app;
@@ -47,7 +49,7 @@ void InitTTFText() {
 #if defined(TH_FALLBACK_TO_BITMAP_FONT)
     return;
 #else
-    font.mem = RespackGetItem(
+    font.mem = GetRespackItem(
         game_app.assets_pack, "fonts/NotoSansMonoCJK.ttc", &font.mem_size
     );
     font.src = SDL_RWFromMem(font.mem, font.mem_size);

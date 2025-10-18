@@ -20,6 +20,12 @@
   THE SOFTWARE.
 */
 
+/*
+  Read and write setting.
+
+  Using `game_setting` to get and set setting.
+*/
+
 #include "setting.h"
 #include "global.h"
 #include <cjson/cJSON.h>
@@ -39,7 +45,7 @@ extern Setting game_setting;
 void InitSetting() {
     char* setting_file = (char*)calloc(PATH_MAX, sizeof(char));
     strcpy(setting_file, game_app.exec_path);
-    strcat(setting_file, "settings.json");
+    strcat(setting_file, "setting.json");
     if (access(setting_file, F_OK) == -1) {
         return;
     }
@@ -121,7 +127,7 @@ void SetSettingLanguage(char* lang) {
 void SaveSetting() {
     char* setting_file = (char*)calloc(PATH_MAX, sizeof(char));
     strcpy(setting_file, game_app.exec_path);
-    strcat(setting_file, "settings.json");
+    strcat(setting_file, "setting.json");
     FILE* fp = fopen(setting_file, "w");
     if (fp == NULL) {
         return;

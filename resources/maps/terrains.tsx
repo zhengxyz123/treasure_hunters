@@ -6,5 +6,8 @@
    <property name="damage" type="int" value="10"/>
    <property name="has_damage" type="bool" value="true"/>
   </properties>
+  <objectgroup draworder="index" id="2">
+   <object id="2" x="0" y="16" width="32" height="16"/>
+  </objectgroup>
  </tile>
 </tileset>

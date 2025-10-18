@@ -21,8 +21,7 @@
 */
 
 #include "ui.h"
-#include "text/bitmap.h"
-#include "text/ttf.h"
+#include "text/text.h"
 #include "widget.h"
 
 void InitUISystem() {

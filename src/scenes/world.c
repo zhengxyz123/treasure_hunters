@@ -30,13 +30,13 @@ extern GameApp game_app;
 Scene world_scene = {
     .init = WorldSceneInit,
     .tick = WorldSceneTick,
-    .free = worldSceneFree,
+    .free = WorldSceneFree,
+    .event_handler = WorldSceneHandleEvent,
     .on_key_down = WorldSceneOnKeyDown,
     .on_cbutton_down = WorldSceneOnControllerButtonDown
 };
 
 Map* map;
-SDL_Point offset = {0, 0};
 
 void WorldSceneInit() {
     map = LoadMap("maps/start.tmx");
@@ -44,29 +44,22 @@ void WorldSceneInit() {
 
 void WorldSceneTick(float dt) {
     DrawBackground(dt);
-    MapDrawLayer(map, TILEMAP_LAYERGROUP_BACK, &offset);
+    TickEntityList(map->entity_list, dt);
+    DrawMapLayer(map, TILEMAP_LAYERGROUP_MIDDLE);
 }
 
-void worldSceneFree() {
+void WorldSceneFree() {
     FreeMap(map);
+}
+
+void WorldSceneHandleEvent(SDL_Event* event) {
+    HandleEntityEvent(map->entity_list, event);
 }
 
 void WorldSceneOnKeyDown(SDL_KeyCode key) {
     switch (key) {
     case SDLK_ESCAPE:
         BackToPrevScene();
-        break;
-    case SDLK_LEFT:
-        offset.x -= 8;
-        break;
-    case SDLK_RIGHT:
-        offset.x += 8;
-        break;
-    case SDLK_UP:
-        offset.y -= 8;
-        break;
-    case SDLK_DOWN:
-        offset.y += 8;
         break;
     default:
         break;
@@ -75,20 +68,8 @@ void WorldSceneOnKeyDown(SDL_KeyCode key) {
 
 void WorldSceneOnControllerButtonDown(int button) {
     switch (button) {
-    case SDL_CONTROLLER_BUTTON_B:
+    case SDL_CONTROLLER_BUTTON_BACK:
         BackToPrevScene();
-        break;
-    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
-        offset.x -= 8;
-        break;
-    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
-        offset.x += 8;
-        break;
-    case SDL_CONTROLLER_BUTTON_DPAD_UP:
-        offset.y -= 8;
-        break;
-    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
-        offset.y += 8;
         break;
     }
 }

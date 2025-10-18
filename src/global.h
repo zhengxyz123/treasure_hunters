@@ -39,17 +39,20 @@
 #endif
 
 #include "frametimer.h"
-#include "resources/respack.h"
+#include "resource/respack.h"
 
 #define MUSIC_CHANNEL 0
 #define SFX_CHANNEL 1
+
+typedef SDL_Point Vector2;
+typedef SDL_FPoint Vector2f;
 
 typedef enum GameStatus {
     GAMESTATUS_NORMAL,
     GAMESTATUS_KEY_BINDING,
 } GameStatus;
 
-typedef struct GameApp{
+typedef struct GameApp {
     int argc;
     char** argv;
     char* exec_path;

@@ -664,7 +664,6 @@ strpool_embedded_config_t const strpool_embedded_default_config =
     };
 
 
-
 #if defined(__GNUC__) && !defined(__clang__) && __GNUC__ >= 14
     #pragma GCC push_options
     #pragma GCC optimize("O0")

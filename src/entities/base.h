@@ -23,16 +23,22 @@
 #ifndef TH_ENTITIES_BASE_H_
 #define TH_ENTITIES_BASE_H_
 
+#include "../global.h"
 #include <SDL.h>
 
 struct Map;
 typedef struct Map Map;
 
-typedef enum EntityType{
+typedef enum EntityType {
     ENTITY_TYPE_PLAYER
 } EntityType;
 
 typedef enum EntityStatus {
+    ENTITY_STATUS_IDLE,
+    ENTITY_STATUS_RUN,
+    ENTITY_STATUS_JUMP,
+    ENTITY_STATUS_FLY,
+    ENTITY_STATUS_FALL,
     ENTITY_STATUS_HURT
 } EntityStatus;
 
@@ -40,16 +46,16 @@ typedef struct Entity {
     size_t id;
     EntityType type;
     EntityStatus status;
-    SDL_FPoint pos;
+    Vector2f pos;
+    Vector2f velocity;
     SDL_FRect bbox;
-    SDL_FPoint bbox_offset;
     int health;
     int damage;
     struct {
         float cooldown_time;
         float immortal_time;
     } take_damage;
-    void (*event_handler)(SDL_Event*);
+    void (*event_handler)(struct Entity*, SDL_Event*);
     Map* map;
     void* userdata;
 } Entity;
@@ -73,7 +79,7 @@ void AddEntityToList(EntityList list, Entity* entity);
 void RemoveEntityInList(EntityList list, Entity* entity);
 void TickEntityList(EntityList list, float dt);
 void HandleEntityEvent(EntityList list, SDL_Event* event);
-void DestroyEntity(Entity* entity);
+void FreeEntity(Entity* entity);
 void DrawEntity(Entity* entity);
 
 #endif

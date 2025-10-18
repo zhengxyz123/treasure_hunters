@@ -23,7 +23,7 @@
 #include "entities/base.h"
 #include "global.h"
 #include "map.h"
-#include "resources/loader.h"
+#include "resource/loader.h"
 #include "scenes/setting_menu.h"
 #include "scenes/start_menu.h"
 #include "scenes/world.h"
@@ -32,7 +32,9 @@
 #include "ui/ui.h"
 #include <SDL.h>
 #include <SDL_image.h>
-#include <SDL_ttf.h>
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
+    #include <SDL_ttf.h>
+#endif
 #if defined(__WIN32__)
     #include <Windows.h>
 #endif
@@ -183,6 +185,9 @@ int main(int argc, char* argv[]) {
     InitTranslation();
     InitUISystem();
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
+    if (!game_setting.language) {
+        SetSettingLanguage("en_us");
+    }
     SetTranslationLanguage(game_setting.language);
 #else
     SetTranslationLanguage("en_us");
@@ -277,7 +282,7 @@ int main(int argc, char* argv[]) {
     IMG_Quit();
     Mix_CloseAudio();
     Mix_Quit();
-#if defined(TH_FALLBACK_TO_BITMAP_FONT)
+#if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     TTF_Quit();
 #endif
     SDL_Quit();

@@ -21,6 +21,7 @@
 */
 
 #include "base.h"
+#include "../map.h"
 #include "player.h"
 #include <stdarg.h>
 #include <stdlib.h>
@@ -67,9 +68,75 @@ void RemoveEntityInList(EntityList list, Entity* entity) {
     }
 }
 
+/*
+  The helper function to find the X coordinate of the closest left or right wall
+  (according to the velocity direction) to prevent collision.
+*/
+float GetWallX(Map* map, float vx, SDL_FRect* bbox) {
+    if (vx > 0) {
+        for (int x = bbox->x; x > bbox->x - bbox->w; --x) {
+            if (MapIsEmpty(map, &(SDL_FRect){x, bbox->y, bbox->w, bbox->h})) {
+                return x;
+            }
+        }
+    } else if (vx < 0) {
+        for (int x = bbox->x - 1; x < bbox->x + bbox->w; ++x) {
+            if (MapIsEmpty(map, &(SDL_FRect){x, bbox->y, bbox->w, bbox->h})) {
+                return x;
+            }
+        }
+    }
+    return bbox->x;
+}
+
+float GetGroundOrCeilingY(Map* map, float vy, SDL_FRect* bbox) {
+    if (vy > 0) {
+        // entity is falling and stuck
+        for (int y = bbox->y + 1; y > bbox->y - bbox->h; --y) {
+            if (MapIsEmpty(map, &(SDL_FRect){bbox->x, y, bbox->w, bbox->h})) {
+                return y;
+            }
+        }
+    } else if (vy < 0) {
+        // entity is jumping and stuck
+        for (int y = bbox->y - 1; y < bbox->y + bbox->h; ++y) {
+            if (MapIsEmpty(map, &(SDL_FRect){bbox->x, y, bbox->w, bbox->h})) {
+                return y;
+            }
+        }
+    }
+    return bbox->y;
+}
+
 void TickEntityList(EntityList list, float dt) {
     for (EntityListNode* node = list->next; node; node = node->next) {
         Entity* entity = node->data;
+        SDL_FRect bbox =
+            (SDL_FRect){entity->pos.x, entity->pos.y - entity->bbox.h,
+                        entity->bbox.w, entity->bbox.h};
+        SDL_FRect test_bbox = bbox;
+        Vector2f gravity = {0, 200};
+        entity->velocity.y += gravity.y * dt;
+        test_bbox.x += entity->velocity.x * dt;
+        if (MapIsEmpty(entity->map, &test_bbox)) {
+            bbox.x = test_bbox.x;
+        } else {
+            float new_x = GetWallX(entity->map, entity->velocity.x, &test_bbox);
+            bbox.x = new_x;
+            entity->velocity.x = 0;
+            test_bbox.x = bbox.x;
+        }
+        test_bbox.y += entity->velocity.y * dt;
+        if (MapIsEmpty(entity->map, &test_bbox)) {
+            bbox.y = test_bbox.y;
+        } else {
+            bbox.y = GetGroundOrCeilingY(
+                entity->map, entity->velocity.y, &test_bbox
+            );
+            entity->velocity.y = 0;
+        }
+        entity->pos.x = bbox.x;
+        entity->pos.y = bbox.y + entity->bbox.h;
         switch (entity->type) {
         case ENTITY_TYPE_PLAYER:
             TickPlayer(entity, dt);
@@ -81,15 +148,15 @@ void TickEntityList(EntityList list, float dt) {
 void HandleEntityEvent(EntityList list, SDL_Event* event) {
     for (EntityListNode* node = list->next; node; node = node->next) {
         if (node->data->event_handler) {
-            node->data->event_handler(event);
+            node->data->event_handler(node->data, event);
         }
     }
 }
 
-void DestroyEntity(Entity* entity) {
+void FreeEntity(Entity* entity) {
     switch (entity->type) {
     case ENTITY_TYPE_PLAYER:
-        DestroyPlayerEntity(entity);
+        FreePlayerEntity(entity);
         break;
     }
 }
