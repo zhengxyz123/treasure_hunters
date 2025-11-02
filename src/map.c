@@ -212,7 +212,7 @@ Map* LoadMapFromMem(void* content, size_t size) {
             for (TilemapObject* obj = layer->objects; obj; obj = obj->next) {
                 if (strcmp(obj->type.ptr, "EntityPosition") == 0 &&
                     strcmp(obj->name.ptr, "player_init") == 0) {
-                    Entity* player = CreatePLayerEntity(map, obj->x, obj->y);
+                    Entity* player = CreatePlayerEntity(map, obj->x, obj->y);
                     AddEntityToList(map->entity_list, player);
                 }
             }

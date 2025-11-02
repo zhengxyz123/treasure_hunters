@@ -91,22 +91,26 @@ void DrawSprite(Sprite* sprite) {
             sprite->color.b
         );
         SDL_SetTextureAlphaMod(animation->texture, sprite->color.a);
-        if (animation->paused) {
-            animation->dt = 0;
-            goto draw;
-        }
-        animation->dt += frametimer_delta_time(game_app.timer);
-        if (animation->dt > animation->clip[animation->now_clip].duration) {
-            animation->now_clip = animation->now_clip + 1 > animation->count - 1
-                                    ? 0
-                                    : animation->now_clip + 1;
-            animation->dt = 0;
-        }
-    draw:
         SDL_RenderCopyExF(
             game_app.renderer, animation->texture,
             &animation->clip[animation->now_clip].area, &sprite->area,
             sprite->angle, &sprite->center, sprite->flip
         );
+        if (animation->paused) {
+            animation->dt = 0;
+        } else {
+            animation->dt += frametimer_delta_time(game_app.timer);
+            if (animation->dt > animation->clip[animation->now_clip].duration) {
+                if (animation->now_clip + 1 > animation->count - 1) {
+                    animation->now_clip = 0;
+                    if (animation->on_animation_end) {
+                        animation->on_animation_end(animation->userdata, animation);
+                    }
+                } else {
+                    ++animation->now_clip;
+                }
+                animation->dt = 0;
+            }
+        }
     }
 }

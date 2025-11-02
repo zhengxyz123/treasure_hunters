@@ -24,6 +24,7 @@
 #define TH_ENTITIES_PLAYER_H_
 
 #include "../global.h"
+#include "../image/image.h"
 #include "base.h"
 #include <SDL.h>
 
@@ -32,11 +33,16 @@ extern GameApp game_app;
 typedef struct PlayerUserData {
     int facing_right;
     int with_sword;
+    int running_direction;
+    int attack_variant;
+    float last_attack_time;
+    float ground_cooldown_time;
 } PlayerUserData;
 
 void InitPlayerTexture();
 void FreePlayerTexture();
-Entity* CreatePLayerEntity(Map* map, float x, float y);
+Entity* CreatePlayerEntity(Map* map, float x, float y);
+void OnPlayerAttackAnimationEnd(void* userdata, Animation* anim);
 void TickPlayer(Entity* player, float dt);
 void HandlePlayerEvent(Entity* player, SDL_Event* event);
 void DrawPlayerEntity(Entity* player);

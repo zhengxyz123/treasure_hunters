@@ -26,6 +26,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#define GRAVITY_Y 240
+
 void InitEntitySystem() {
     InitPlayerTexture();
 }
@@ -74,12 +76,14 @@ void RemoveEntityInList(EntityList list, Entity* entity) {
 */
 float GetWallX(Map* map, float vx, SDL_FRect* bbox) {
     if (vx > 0) {
+        // entity is running right and stuck
         for (int x = bbox->x; x > bbox->x - bbox->w; --x) {
             if (MapIsEmpty(map, &(SDL_FRect){x, bbox->y, bbox->w, bbox->h})) {
                 return x;
             }
         }
     } else if (vx < 0) {
+        // entity is running left and stuck
         for (int x = bbox->x - 1; x < bbox->x + bbox->w; ++x) {
             if (MapIsEmpty(map, &(SDL_FRect){x, bbox->y, bbox->w, bbox->h})) {
                 return x;
@@ -89,6 +93,10 @@ float GetWallX(Map* map, float vx, SDL_FRect* bbox) {
     return bbox->x;
 }
 
+/*
+  The helper function to find the Y coordinate of the closest ground or ceiling
+  surface (according to the velocity direction) to prevent collision.
+*/
 float GetGroundOrCeilingY(Map* map, float vy, SDL_FRect* bbox) {
     if (vy > 0) {
         // entity is falling and stuck
@@ -110,20 +118,26 @@ float GetGroundOrCeilingY(Map* map, float vy, SDL_FRect* bbox) {
 
 void TickEntityList(EntityList list, float dt) {
     for (EntityListNode* node = list->next; node; node = node->next) {
+        if (node->data->should_delete) {
+            RemoveEntityInList(list, node->data);
+            continue;
+        }
         Entity* entity = node->data;
         SDL_FRect bbox =
             (SDL_FRect){entity->pos.x, entity->pos.y - entity->bbox.h,
                         entity->bbox.w, entity->bbox.h};
         SDL_FRect test_bbox = bbox;
-        Vector2f gravity = {0, 200};
-        entity->velocity.y += gravity.y * dt;
+        // simulate gravity and deal with collision
+        if (!entity->no_gravity_effect) {
+            Vector2f gravity = {0, GRAVITY_Y};
+            entity->velocity.y += gravity.y * dt;
+        }
         test_bbox.x += entity->velocity.x * dt;
         if (MapIsEmpty(entity->map, &test_bbox)) {
             bbox.x = test_bbox.x;
         } else {
-            float new_x = GetWallX(entity->map, entity->velocity.x, &test_bbox);
-            bbox.x = new_x;
-            entity->velocity.x = 0;
+            bbox.x = GetWallX(entity->map, entity->velocity.x, &test_bbox);
+            entity->velocity.x *= -entity->elastic_collision_factor.x;
             test_bbox.x = bbox.x;
         }
         test_bbox.y += entity->velocity.y * dt;
@@ -133,7 +147,7 @@ void TickEntityList(EntityList list, float dt) {
             bbox.y = GetGroundOrCeilingY(
                 entity->map, entity->velocity.y, &test_bbox
             );
-            entity->velocity.y = 0;
+            entity->velocity.y *= -entity->elastic_collision_factor.y;
         }
         entity->pos.x = bbox.x;
         entity->pos.y = bbox.y + entity->bbox.h;

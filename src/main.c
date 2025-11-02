@@ -68,6 +68,7 @@ Setting game_setting = {
 
 // main function for Linux
 int main(int argc, char* argv[]) {
+    int retval = EXIT_SUCCESS;
     srand((unsigned)time(NULL));
 
     // initialise SDL, SDL_image, SDL_mixer and SDL_ttf
@@ -99,6 +100,7 @@ int main(int argc, char* argv[]) {
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "TTF_Init(): %s\n", SDL_GetError()
         );
+        retval = EXIT_FAILURE;
     }
 #endif
 
@@ -114,6 +116,7 @@ int main(int argc, char* argv[]) {
     strcat(rpkg_path, "assets.rpkg");
     game_app.assets_pack = LoadRespack(rpkg_path);
     if (!game_app.assets_pack) {
+        retval = 1;
         SDL_LogError(
             SDL_LOG_CATEGORY_ERROR, "%s is not a resource pack", rpkg_path
         );
@@ -124,8 +127,7 @@ int main(int argc, char* argv[]) {
         );
         free(rpkg_path);
         free(message);
-        free(game_app.exec_path);
-        return 1;
+        goto rpkg_not_found;
     }
     free(rpkg_path);
 
@@ -267,26 +269,27 @@ int main(int argc, char* argv[]) {
         SDL_GameControllerClose(game_app.joystick.device);
     }
     SaveSetting();
-    QuitTranslation();
     QuitMapSystem();
     QuitEntitySystem();
     QuitSceneSystem();
+    QuitTranslation();
     QuitUISystem();
-    FreeRespack(game_app.assets_pack);
-    free(game_app.exec_path);
 #if !defined(__PSP__) && !defined(__vita__)
     SDL_FreeSurface(icon_image);
 #endif
     SDL_DestroyRenderer(game_app.renderer);
     SDL_DestroyWindow(game_app.window);
-    IMG_Quit();
-    Mix_CloseAudio();
-    Mix_Quit();
+    FreeRespack(game_app.assets_pack);
+rpkg_not_found:
+    free(game_app.exec_path);
 #if !defined(TH_FALLBACK_TO_BITMAP_FONT)
     TTF_Quit();
 #endif
+    Mix_CloseAudio();
+    Mix_Quit();
+    IMG_Quit();
     SDL_Quit();
-    return 0;
+    return retval;
 }
 
 #if defined(__WIN32__)

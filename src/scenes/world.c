@@ -45,6 +45,7 @@ void WorldSceneInit() {
 void WorldSceneTick(float dt) {
     DrawBackground(dt);
     TickEntityList(map->entity_list, dt);
+    DrawMapLayer(map, TILEMAP_LAYERGROUP_BACK);
     DrawMapLayer(map, TILEMAP_LAYERGROUP_MIDDLE);
 }
 
@@ -68,7 +69,7 @@ void WorldSceneOnKeyDown(SDL_KeyCode key) {
 
 void WorldSceneOnControllerButtonDown(int button) {
     switch (button) {
-    case SDL_CONTROLLER_BUTTON_BACK:
+    case SDL_CONTROLLER_BUTTON_START:
         BackToPrevScene();
         break;
     }

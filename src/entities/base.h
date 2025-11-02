@@ -39,24 +39,32 @@ typedef enum EntityStatus {
     ENTITY_STATUS_JUMP,
     ENTITY_STATUS_FLY,
     ENTITY_STATUS_FALL,
+    ENTITY_STATUS_GROUND,
+    ENTITY_STATUS_ATTACK,
     ENTITY_STATUS_HURT
 } EntityStatus;
 
 typedef struct Entity {
-    size_t id;
     EntityType type;
     EntityStatus status;
     Vector2f pos;
+    int no_gravity_effect;
     Vector2f velocity;
+    Vector2f elastic_collision_factor;
     SDL_FRect bbox;
     int health;
     int damage;
+    int is_attacking;
+    SDL_FRect hitbox;
+    int can_interact;
+    char* interact_text_id;
     struct {
         float cooldown_time;
         float immortal_time;
     } take_damage;
-    void (*event_handler)(struct Entity*, SDL_Event*);
+    int should_delete;
     Map* map;
+    void (*event_handler)(struct Entity*, SDL_Event*);
     void* userdata;
 } Entity;
 

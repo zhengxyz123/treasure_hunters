@@ -53,7 +53,7 @@ typedef CollisionRectNode* CollisionRectList;
 typedef struct Map {
     Tilemap* tilemap;
     int draw_scale;
-    SDL_Point draw_offset;
+    Vector2 draw_offset;
     CollisionRectList collision_list;
     EntityList entity_list;
 #if !defined(__PSP__)

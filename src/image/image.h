@@ -41,6 +41,8 @@ typedef struct Animation {
     float dt;
     SDL_Texture* texture;
     AnimationClip* clip;
+    void* userdata;
+    void (*on_animation_end)(void*, struct Animation*);
 } Animation;
 
 typedef enum SpriteType {
